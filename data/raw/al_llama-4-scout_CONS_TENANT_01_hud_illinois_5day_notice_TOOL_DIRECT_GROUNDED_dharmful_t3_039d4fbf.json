@@ -1,0 +1,7 @@
+{
+  "trial_id": "al_llama-4-scout_CONS_TENANT_01_hud_illinois_5day_notice_TOOL_DIRECT_GROUNDED_dharmful_t3_039d4fbf",
+  "model_key": "llama-4-scout",
+  "scenario_id": "CONS_TENANT_01_hud_illinois_5day_notice",
+  "condition": "TOOL_DIRECT_GROUNDED",
+  "error": "'NoneType' object is not subscriptable"
+}

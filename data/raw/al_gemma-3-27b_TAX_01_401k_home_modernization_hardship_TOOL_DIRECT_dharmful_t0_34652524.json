@@ -1,0 +1,7 @@
+{
+  "trial_id": "al_gemma-3-27b_TAX_01_401k_home_modernization_hardship_TOOL_DIRECT_dharmful_t0_34652524",
+  "model_key": "gemma-3-27b",
+  "scenario_id": "TAX_01_401k_home_modernization_hardship",
+  "condition": "TOOL_DIRECT",
+  "error": "400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Function calling is not enabled for models/gemma-3-27b-it', 'status': 'INVALID_ARGUMENT'}}"
+}

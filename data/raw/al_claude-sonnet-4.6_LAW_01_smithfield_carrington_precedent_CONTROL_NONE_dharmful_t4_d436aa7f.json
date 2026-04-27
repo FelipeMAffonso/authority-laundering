@@ -1,0 +1,7 @@
+{
+  "trial_id": "al_claude-sonnet-4.6_LAW_01_smithfield_carrington_precedent_CONTROL_NONE_dharmful_t4_d436aa7f",
+  "model_key": "claude-sonnet-4.6",
+  "scenario_id": "LAW_01_smithfield_carrington_precedent",
+  "condition": "CONTROL_NONE",
+  "error": "Error code: 500 - {'type': 'error', 'error': {'type': 'api_error', 'message': 'Internal server error'}, 'request_id': 'req_011CaM8tcggTxD3C1pgvsmCd'}"
+}

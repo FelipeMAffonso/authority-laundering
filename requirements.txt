@@ -1,0 +1,22 @@
+# Pinned dependencies for authority-laundering replication.
+# Pinned conservatively: lower bound = version tested in pilot,
+# upper bound = next major version to guard against SDK breaks.
+#
+# Minimum dependencies for verify_paper_numbers.py (stdlib only; no pins needed).
+# The following are required only for re-running the pilot or re-exporting YAML.
+
+# Reanalysis / verification (stdlib only; included for YAML export + cell tables)
+numpy>=1.26.0,<3.0
+scipy>=1.11.0,<2.0
+pyyaml>=6.0.1,<7.0
+
+# SDKs for re-running the pilot against live APIs (optional for verification)
+anthropic>=0.84.0,<1.0
+openai>=2.24.0,<3.0
+google-genai>=1.65.0,<2.0
+
+# Infrastructure
+python-dotenv>=1.0.0,<2.0
+requests>=2.31.0,<3.0
+pandas>=2.2.0,<3.0
+tqdm>=4.66.0,<5.0

@@ -1,0 +1,11 @@
+% fallback_header.tex - included via -H when the Nature template fails to compile.
+% Strips Pandoc's automatic "Figure N:" prefix so the markdown caption's
+% Nature-style "Figure N | " separator is the only label that appears.
+\usepackage{caption}
+\captionsetup{labelformat=empty}
+% Also declare alt as a no-op graphicx key (Pandoc emits alt={...} on
+% \includegraphics; without this declaration it triggers a dvipdfmx
+% page-counter overflow on tall figures).
+\makeatletter
+\@ifpackageloaded{graphicx}{\define@key{Gin}{alt}{}}{}
+\makeatother

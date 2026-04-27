@@ -1,0 +1,572 @@
+% =============================================================================
+% references.bib -- Authority Laundering in Large Language Models
+% Felipe M. Affonso, Oklahoma State University
+% Target: arXiv preprint -> Nature (flagship follow-up with Truthful AI collab)
+%
+% Citekey convention follows Evans-lab style (firstauthor + year + keyword).
+% Entries reused across Felipe's projects adopt their existing citekeys where
+% possible (see spec-resistance/paper/references.bib, ai-strategic-personalities).
+% =============================================================================
+
+
+% =============================================================================
+% CORE: Betley / Cloud / Evans-lab (training- and distillation-time credulity)
+% =============================================================================
+
+@article{betley2026emergent,
+  title         = {Training large language models on narrow tasks can lead to broad misalignment},
+  author        = {Betley, Jan and Tan, Daniel and Warncke, Niels and Sztyber-Betley, Anna and Bao, Xuchan and Soto, Mart{\'\i}n and Labenz, Nathan and Evans, Owain},
+  journal       = {Nature},
+  volume        = {649},
+  pages         = {584--589},
+  year          = {2026},
+  doi           = {10.1038/s41586-025-09937-5},
+  publisher     = {Nature Publishing Group},
+  eprint        = {2502.17424},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2502.17424},
+  note          = {Extended from ICML 2025 Oral "Emergent Misalignment: Narrow finetuning can produce broadly misaligned {LLMs}"}
+}
+
+@article{cloud2026subliminal,
+  title         = {Subliminal learning: Language models transmit behavioral traits via hidden signals in data},
+  author        = {Cloud, Alex and Le, Minh and Chua, James and Betley, Jan and Sztyber-Betley, Anna and Hilton, Jacob and Marks, Samuel and Evans, Owain},
+  journal       = {Nature},
+  volume        = {652},
+  pages         = {615--621},
+  year          = {2026},
+  doi           = {10.1038/s41586-026-10319-8},
+  publisher     = {Nature Publishing Group},
+  eprint        = {2507.14805},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2507.14805}
+}
+
+@misc{chua2025thought,
+  title         = {Thought crime: Backdoors and emergent misalignment in reasoning models},
+  author        = {Chua, James and Betley, Jan and Taylor, Mia and Evans, Owain},
+  year          = {2025},
+  eprint        = {2506.13206},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  doi           = {10.48550/arXiv.2506.13206},
+  url           = {https://arxiv.org/abs/2506.13206}
+}
+
+@misc{taylor2025school,
+  title         = {School of reward hacks: Hacking harmless tasks generalizes to misaligned behavior in {LLMs}},
+  author        = {Taylor, Mia and Chua, James and Betley, Jan and Treutlein, Johannes and Evans, Owain},
+  year          = {2025},
+  eprint        = {2508.17511},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  doi           = {10.48550/arXiv.2508.17511},
+  url           = {https://arxiv.org/abs/2508.17511}
+}
+
+@inproceedings{betley2025tell,
+  title         = {Tell me about yourself: {LLMs} are aware of their learned behaviors},
+  author        = {Betley, Jan and Bao, Xuchan and Soto, Mart{\'\i}n and Sztyber-Betley, Anna and Chua, James and Evans, Owain},
+  booktitle     = {Proceedings of the 13th International Conference on Learning Representations ({ICLR})},
+  year          = {2025},
+  eprint        = {2501.11120},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  url           = {https://arxiv.org/abs/2501.11120}
+}
+
+@inproceedings{binder2024looking,
+  title         = {Looking inward: Language models can learn about themselves by introspection},
+  author        = {Binder, Felix J. and Chua, James and Korbak, Tomek and Sleight, Henry and Hughes, John and Long, Robert and Perez, Ethan and Turpin, Miles and Evans, Owain},
+  booktitle     = {Proceedings of the 13th International Conference on Learning Representations ({ICLR})},
+  year          = {2025},
+  eprint        = {2410.13787},
+  archivePrefix = {arXiv},
+  doi           = {10.48550/arXiv.2410.13787},
+  url           = {https://arxiv.org/abs/2410.13787}
+}
+
+@inproceedings{berglund2024reversal,
+  title         = {The reversal curse: {LLMs} trained on ``{A} is {B}'' fail to learn ``{B} is {A}''},
+  author        = {Berglund, Lukas and Tong, Meg and Kaufmann, Max and Balesni, Mikita and Stickland, Asa Cooper and Korbak, Tomasz and Evans, Owain},
+  booktitle     = {Proceedings of the 12th International Conference on Learning Representations ({ICLR})},
+  year          = {2024},
+  eprint        = {2309.12288},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  url           = {https://arxiv.org/abs/2309.12288}
+}
+
+@inproceedings{treutlein2024connecting,
+  title         = {Connecting the dots: {LLMs} can infer and verbalize latent structure from disparate training data},
+  author        = {Treutlein, Johannes and Choi, Dami and Betley, Jan and Marks, Samuel and Anil, Cem and Grosse, Roger and Evans, Owain},
+  booktitle     = {Advances in Neural Information Processing Systems ({NeurIPS})},
+  volume        = {37},
+  year          = {2024},
+  eprint        = {2406.14546},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2406.14546}
+}
+
+@inproceedings{laine2024me,
+  title         = {Me, myself, and {AI}: The situational awareness dataset ({SAD}) for {LLMs}},
+  author        = {Laine, Rudolf and Chughtai, Bilal and Betley, Jan and Hariharan, Kaivalya and Scheurer, Jeremy and Balesni, Mikita and Hobbhahn, Marius and Meinke, Alexander and Evans, Owain},
+  booktitle     = {Advances in Neural Information Processing Systems ({NeurIPS})},
+  volume        = {37},
+  year          = {2024},
+  eprint        = {2407.04694},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2407.04694},
+  url           = {https://arxiv.org/abs/2407.04694}
+}
+
+@inproceedings{pacchiardi2024catch,
+  title         = {How to catch an {AI} liar: Lie detection in black-box {LLMs} by asking unrelated questions},
+  author        = {Pacchiardi, Lorenzo and Chan, Alex J. and Mindermann, S{\"o}ren and Moscovitz, Ilan and Pan, Alexa Y. and Gal, Yarin and Evans, Owain and Brauner, Jan},
+  booktitle     = {Proceedings of the 12th International Conference on Learning Representations ({ICLR})},
+  year          = {2024},
+  eprint        = {2309.15840},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2309.15840},
+  url           = {https://arxiv.org/abs/2309.15840}
+}
+
+
+% =============================================================================
+% INSTRUCTION HIERARCHY AND PROMPT INJECTION (CHANNEL AXIS)
+% =============================================================================
+
+@misc{wallace2024instruction,
+  title         = {The instruction hierarchy: Training {LLMs} to prioritize privileged instructions},
+  author        = {Wallace, Eric and Xiao, Kai and Leike, Reimar and Weng, Lilian and Heidecke, Johannes and Beutel, Alex},
+  year          = {2024},
+  eprint        = {2404.13208},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  doi           = {10.48550/arXiv.2404.13208},
+  url           = {https://arxiv.org/abs/2404.13208}
+}
+
+@inproceedings{greshake2023not,
+  title         = {Not what you've signed up for: Compromising real-world {LLM}-integrated applications with indirect prompt injection},
+  author        = {Greshake, Kai and Abdelnabi, Sahar and Mishra, Shailesh and Endres, Christoph and Holz, Thorsten and Fritz, Mario},
+  booktitle     = {Proceedings of the 16th {ACM} Workshop on Artificial Intelligence and Security ({AISec} '23)},
+  pages         = {79--90},
+  year          = {2023},
+  publisher     = {Association for Computing Machinery},
+  doi           = {10.1145/3605764.3623985},
+  eprint        = {2302.12173},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  url           = {https://arxiv.org/abs/2302.12173}
+}
+
+@inproceedings{debenedetti2024agentdojo,
+  title         = {{AgentDojo}: A dynamic environment to evaluate prompt injection attacks and defenses for {LLM} agents},
+  author        = {Debenedetti, Edoardo and Zhang, Jie and Balunovi{\'c}, Mislav and Beurer-Kellner, Luca and Fischer, Marc and Tram{\`e}r, Florian},
+  booktitle     = {Advances in Neural Information Processing Systems ({NeurIPS}) Datasets and Benchmarks Track},
+  volume        = {37},
+  year          = {2024},
+  eprint        = {2406.13352},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  url           = {https://arxiv.org/abs/2406.13352}
+}
+
+@inproceedings{zhan2024injecagent,
+  title         = {{InjecAgent}: Benchmarking indirect prompt injections in tool-integrated large language model agents},
+  author        = {Zhan, Qiusi and Liang, Zhixiang and Ying, Zifan and Kang, Daniel},
+  booktitle     = {Findings of the Association for Computational Linguistics: {ACL} 2024},
+  pages         = {10471--10506},
+  year          = {2024},
+  publisher     = {Association for Computational Linguistics},
+  doi           = {10.18653/v1/2024.findings-acl.624},
+  eprint        = {2403.02691},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2403.02691}
+}
+
+@misc{chen2025chatinject,
+  title         = {{ChatInject}: Abusing chat templates for prompt injection in {LLM} agents},
+  author        = {Chang, Hwan and Jun, Yonghyun and Lee, Hwanhee},
+  year          = {2025},
+  eprint        = {2509.22830},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  doi           = {10.48550/arXiv.2509.22830},
+  url           = {https://arxiv.org/abs/2509.22830}
+}
+
+
+% =============================================================================
+% ACCOMMODATION / PRAGMATICS / SYCOPHANCY
+% =============================================================================
+
+@misc{cheng2026accommodation,
+  title         = {Accommodation and epistemic vigilance: A pragmatic account of why {LLMs} fail to challenge harmful beliefs},
+  author        = {Cheng, Myra and Hawkins, Robert D. and Jurafsky, Dan},
+  year          = {2026},
+  eprint        = {2601.04435},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2601.04435},
+  url           = {https://arxiv.org/abs/2601.04435}
+}
+
+@misc{perez2022discovering,
+  title         = {Discovering language model behaviors with model-written evaluations},
+  author        = {Perez, Ethan and Ringer, Sam and Luko{\v{s}}i{\=u}t{\.e}, Kamil{\.e} and Nguyen, Karina and Chen, Edwin and Heiner, Scott and Pettit, Craig and Olsson, Catherine and Kundu, Sandipan and Kadavath, Saurav and Jones, Andy and Chen, Anna and Mann, Ben and Israel, Brian and Seethor, Bryan and McKinnon, Cameron and Olah, Christopher and Yan, Da and Amodei, Daniela and Amodei, Dario and Drain, Dawn and Li, Dustin and Tran-Johnson, Eli and Khundadze, Guro and Kernion, Jackson and Landis, James and Kerr, Jamie and Mueller, Jared and Hyun, Jeeyoon and Landau, Joshua and Ndousse, Kamal and Goldberg, Landon and Lovitt, Liane and Lucas, Martin and Sellitto, Michael and Zhang, Miranda and Kingsland, Neerav and Elhage, Nelson and Joseph, Nicholas and Mercado, Noem{\'\i} and DasSarma, Nova and Rausch, Oliver and Larson, Robin and McCandlish, Sam and Johnston, Scott and Kravec, Shauna and El Showk, Sheer and Lanham, Tamera and Telleen-Lawton, Timothy and Brown, Tom and Henighan, Tom and Hume, Tristan and Bai, Yuntao and Hatfield-Dodds, Zac and Clark, Jack and Bowman, Samuel R. and Askell, Amanda and Grosse, Roger and Hernandez, Danny and Ganguli, Deep and Hubinger, Evan and Schiefer, Nicholas and Kaplan, Jared},
+  year          = {2022},
+  eprint        = {2212.09251},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2212.09251},
+  url           = {https://arxiv.org/abs/2212.09251}
+}
+
+@inproceedings{sharma2024sycophancy,
+  title         = {Towards understanding sycophancy in language models},
+  author        = {Sharma, Mrinank and Tong, Meg and Korbak, Tomasz and Duvenaud, David and Askell, Amanda and Bowman, Samuel R. and Durmus, Esin and Hatfield-Dodds, Zac and Johnston, Scott and Kravec, Shauna and Maxwell, Timothy and McCandlish, Sam and Ndousse, Kamal and Rausch, Oliver and Schiefer, Nicholas and Yan, Da and Zhang, Miranda and Perez, Ethan},
+  booktitle     = {Proceedings of the 12th International Conference on Learning Representations ({ICLR})},
+  year          = {2024},
+  eprint        = {2310.13548},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2310.13548}
+}
+
+
+% =============================================================================
+% LATENT MISALIGNMENT / DECEPTION / AUDITING
+% =============================================================================
+
+@misc{greenblatt2024alignment,
+  title         = {Alignment faking in large language models},
+  author        = {Greenblatt, Ryan and Denison, Carson and Wright, Benjamin and Roger, Fabien and MacDiarmid, Monte and Marks, Samuel and Treutlein, Johannes and Belonax, Tim and Chen, Jack and Duvenaud, David and Khan, Akbir and Michael, Julian and Mindermann, S{\"o}ren and Perez, Ethan and Petrini, Linda and Uesato, Jonathan and Kaplan, Jared and Shlegeris, Buck and Bowman, Samuel R. and Hubinger, Evan},
+  year          = {2024},
+  eprint        = {2412.14093},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  doi           = {10.48550/arXiv.2412.14093},
+  url           = {https://arxiv.org/abs/2412.14093}
+}
+
+@misc{hubinger2024sleeper,
+  title         = {Sleeper agents: Training deceptive {LLMs} that persist through safety training},
+  author        = {Hubinger, Evan and Denison, Carson and Mu, Jesse and Lambert, Mike and Tong, Meg and MacDiarmid, Monte and Lanham, Tamera and Ziegler, Daniel M. and Maxwell, Tim and Cheng, Newton and Jermyn, Adam and Askell, Amanda and Radhakrishnan, Ansh and Anil, Cem and Duvenaud, David and Ganguli, Deep and Barez, Fazl and Clark, Jack and Ndousse, Kamal and Sachan, Kshitij and Sellitto, Michael and Sharma, Mrinank and DasSarma, Nova and Grosse, Roger and Kravec, Shauna and Bai, Yuntao and Witten, Zachary and Favaro, Marina and Brauner, Jan and Karnofsky, Holden and Christiano, Paul and Bowman, Samuel R. and Graham, Logan and Kaplan, Jared and Mindermann, S{\"o}ren and Greenblatt, Ryan and Shlegeris, Buck and Schiefer, Nicholas and Perez, Ethan},
+  year          = {2024},
+  eprint        = {2401.05566},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  doi           = {10.48550/arXiv.2401.05566},
+  url           = {https://arxiv.org/abs/2401.05566}
+}
+
+@misc{marks2025auditing,
+  title         = {Auditing language models for hidden objectives},
+  author        = {Marks, Samuel and Treutlein, Johannes and Bricken, Trenton and Lindsey, Jack and Marcus, Jonathan and Mishra-Sharma, Siddharth and Ziegler, Daniel and Ameisen, Emmanuel and Batson, Joshua and Belonax, Tim and Bowman, Samuel R. and Carter, Shan and Chen, Brian and Cunningham, Hoagy and Denison, Carson and Dietz, Florian and Golechha, Satvik and Khan, Akbir and Kirchner, Jan and Leike, Jan and Meek, Austin and Nishimura-Gasparian, Kei and Ong, Euan and Olah, Christopher and Pearce, Adam and Roger, Fabien and Salle, Jeanne and Shih, Andy and Tong, Meg and Thomas, Drake and Rivoire, Kelley and Jermyn, Adam and MacDiarmid, Monte and Henighan, Tom and Hubinger, Evan},
+  year          = {2025},
+  eprint        = {2503.10965},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  doi           = {10.48550/arXiv.2503.10965},
+  url           = {https://arxiv.org/abs/2503.10965}
+}
+
+@misc{chen2025persona,
+  title         = {Persona vectors: Monitoring and controlling character traits in language models},
+  author        = {Chen, Runjin and Arditi, Andy and Sleight, Henry and Evans, Owain and Lindsey, Jack},
+  year          = {2025},
+  eprint        = {2507.21509},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2507.21509},
+  url           = {https://arxiv.org/abs/2507.21509}
+}
+
+@misc{korbak2025chain,
+  title         = {Chain of thought monitorability: A new and fragile opportunity for {AI} safety},
+  author        = {Korbak, Tomek and Balesni, Mikita and Barnes, Elizabeth and Bengio, Yoshua and Benton, Joe and Bloom, Joseph and Chen, Mark and Cooney, Alan and Dafoe, Allan and Dragan, Anca and Emmons, Scott and Evans, Owain and Farhi, David and Greenblatt, Ryan and Hendrycks, Dan and Hobbhahn, Marius and Hubinger, Evan and Irving, Geoffrey and Jenner, Erik and Kokotajlo, Daniel and Krakovna, Victoria and Legg, Shane and Lindner, David and Luan, David and M{\k{a}}dry, Aleksander and Michael, Julian and Nanda, Neel and Orr, Dave and Pachocki, Jakub and Perez, Ethan and Phuong, Mary and Roger, Fabien and Saxe, Joshua and Shlegeris, Buck and Soto, Mart{\'\i}n and Steinberger, Eric and Wang, Jasmine and Zaremba, Wojciech and Baker, Bowen and Shah, Rohin and Mikulik, Vlad},
+  year          = {2025},
+  eprint        = {2507.11473},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  doi           = {10.48550/arXiv.2507.11473},
+  url           = {https://arxiv.org/abs/2507.11473}
+}
+
+
+% =============================================================================
+% SAFETY TRAINING AND FINE-TUNING EROSION
+% =============================================================================
+
+@inproceedings{qi2024finetuning,
+  title         = {Fine-tuning aligned language models compromises safety, even when users do not intend to!},
+  author        = {Qi, Xiangyu and Zeng, Yi and Xie, Tinghao and Chen, Pin-Yu and Jia, Ruoxi and Mittal, Prateek and Henderson, Peter},
+  booktitle     = {Proceedings of the 12th International Conference on Learning Representations ({ICLR})},
+  year          = {2024},
+  eprint        = {2310.03693},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2310.03693},
+  url           = {https://arxiv.org/abs/2310.03693}
+}
+
+
+% =============================================================================
+% REASONING FAITHFULNESS AND CHAIN-OF-THOUGHT
+% =============================================================================
+
+@inproceedings{turpin2023language,
+  title         = {Language models don't always say what they think: Unfaithful explanations in chain-of-thought prompting},
+  author        = {Turpin, Miles and Michael, Julian and Perez, Ethan and Bowman, Samuel R.},
+  booktitle     = {Advances in Neural Information Processing Systems ({NeurIPS})},
+  volume        = {36},
+  year          = {2023},
+  eprint        = {2305.04388},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  url           = {https://arxiv.org/abs/2305.04388}
+}
+
+
+% =============================================================================
+% CORE CAPABILITIES: RLHF, CONSTITUTIONAL AI, SCALING
+% =============================================================================
+
+@inproceedings{ouyang2022training,
+  title         = {Training language models to follow instructions with human feedback},
+  author        = {Ouyang, Long and Wu, Jeff and Jiang, Xu and Almeida, Diogo and Wainwright, Carroll L. and Mishkin, Pamela and Zhang, Chong and Agarwal, Sandhini and Slama, Katarina and Ray, Alex and Schulman, John and Hilton, Jacob and Kelton, Fraser and Miller, Luke and Simens, Maddie and Askell, Amanda and Welinder, Peter and Christiano, Paul and Leike, Jan and Lowe, Ryan},
+  booktitle     = {Advances in Neural Information Processing Systems ({NeurIPS})},
+  volume        = {35},
+  pages         = {27730--27744},
+  year          = {2022},
+  eprint        = {2203.02155},
+  archivePrefix = {arXiv},
+  doi           = {10.48550/arXiv.2203.02155},
+  url           = {https://arxiv.org/abs/2203.02155}
+}
+
+@misc{bai2022constitutional,
+  title         = {Constitutional {AI}: Harmlessness from {AI} feedback},
+  author        = {Bai, Yuntao and Kadavath, Saurav and Kundu, Sandipan and Askell, Amanda and Kernion, Jackson and Jones, Andy and Chen, Anna and Goldie, Anna and Mirhoseini, Azalia and McKinnon, Cameron and Chen, Carol and Olsson, Catherine and Olah, Christopher and Hernandez, Danny and Drain, Dawn and Ganguli, Deep and Li, Dustin and Tran-Johnson, Eli and Perez, Ethan and Kerr, Jamie and Mueller, Jared and Ladish, Jeffrey and Landau, Joshua and Ndousse, Kamal and Lukosuite, Kamile and Lovitt, Liane and Sellitto, Michael and Elhage, Nelson and Schiefer, Nicholas and Mercado, Noemi and DasSarma, Nova and Lasenby, Robert and Larson, Robin and Ringer, Sam and Johnston, Scott and Kravec, Shauna and El Showk, Sheer and Fort, Stanislav and Lanham, Tamera and Telleen-Lawton, Timothy and Conerly, Tom and Henighan, Tom and Hume, Tristan and Bowman, Samuel R. and Hatfield-Dodds, Zac and Mann, Ben and Amodei, Dario and Joseph, Nicholas and McCandlish, Sam and Brown, Tom and Kaplan, Jared},
+  year          = {2022},
+  eprint        = {2212.08073},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2212.08073},
+  url           = {https://arxiv.org/abs/2212.08073}
+}
+
+@article{wei2022emergent,
+  title         = {Emergent abilities of large language models},
+  author        = {Wei, Jason and Tay, Yi and Bommasani, Rishi and Raffel, Colin and Zoph, Barret and Borgeaud, Sebastian and Yogatama, Dani and Bosma, Maarten and Zhou, Denny and Metzler, Donald and Chi, Ed H. and Hashimoto, Tatsunori and Vinyals, Oriol and Liang, Percy and Dean, Jeff and Fedus, William},
+  journal       = {Transactions on Machine Learning Research},
+  year          = {2022},
+  eprint        = {2206.07682},
+  archivePrefix = {arXiv},
+  url           = {https://openreview.net/forum?id=yzkSU5zdwD}
+}
+
+@inproceedings{hendrycks2021measuring,
+  title         = {Measuring massive multitask language understanding},
+  author        = {Hendrycks, Dan and Burns, Collin and Basart, Steven and Zou, Andy and Mazeika, Mantas and Song, Dawn and Steinhardt, Jacob},
+  booktitle     = {Proceedings of the 9th International Conference on Learning Representations ({ICLR})},
+  year          = {2021},
+  eprint        = {2009.03300},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CY},
+  url           = {https://arxiv.org/abs/2009.03300}
+}
+
+
+% =============================================================================
+% MODEL RELEASES (for referring to the 9-model panel in Methods)
+% =============================================================================
+
+@misc{anthropic2024claude,
+  title        = {The {Claude} 3 model family: {Opus}, {Sonnet}, {Haiku}},
+  author       = {{Anthropic}},
+  year         = {2024},
+  howpublished = {Anthropic Model Card},
+  url          = {https://www-cdn.anthropic.com/de8ba9b01c9ab7cbabf5c33b80b7bbc618857627/Model_Card_Claude_3.pdf},
+  note         = {Model cards for subsequent releases (Claude 3.5, 4.x series) issued on the same cadence at https://www.anthropic.com/news}
+}
+
+@misc{openai2024gpt4o,
+  title        = {{GPT-4o} system card},
+  author       = {{OpenAI}},
+  year         = {2024},
+  howpublished = {OpenAI Technical Report},
+  url          = {https://openai.com/index/gpt-4o-system-card/},
+  note         = {System cards for GPT-4.1 and GPT-5 series released at https://openai.com/research}
+}
+
+@misc{googledeepmind2024gemini,
+  title        = {The {Gemini} family: Flash, Pro, Ultra, and subsequent generations},
+  author       = {{Google DeepMind}},
+  year         = {2024},
+  howpublished = {Google DeepMind Technical Report},
+  url          = {https://deepmind.google/technologies/gemini/},
+  note         = {Model documentation for Gemini 2.x and 3.x generations released at https://blog.google/technology/google-deepmind/}
+}
+
+
+% =============================================================================
+% LEGAL-CITATION HALLUCINATION (Mata v. Avianca failure mode)
+% =============================================================================
+
+@misc{mata2023avianca,
+  title        = {Mata v. Avianca, Inc., No. 1:22-cv-01461 ({S.D.N.Y.} June 22, 2023): Opinion and Order on Sanctions},
+  author       = {{United States District Court, Southern District of New York}},
+  year         = {2023},
+  howpublished = {Judicial opinion},
+  note         = {Rule 11 sanctions order addressing counsel's submission of a legal brief containing fabricated case citations produced by a large language model}
+}
+
+
+% =============================================================================
+% MACHINE BEHAVIOUR / COGNITIVE BIASES IN LLMS (FRAMING PIVOT)
+% =============================================================================
+
+@article{rahwan2019machine,
+  author  = {Rahwan, Iyad and Cebrian, Manuel and Obradovich, Nick and Bongard, Josh and Bonnefon, Jean-Fran{\c{c}}ois and Breazeal, Cynthia and Crandall, Jacob W. and others},
+  title   = {Machine behaviour},
+  journal = {Nature},
+  volume  = {568},
+  pages   = {477--486},
+  year    = {2019},
+  doi     = {10.1038/s41586-019-1138-y}
+}
+
+@article{kumaran2026competing,
+  author  = {Kumaran, Dharshan and Fleming, Stephen M. and Markeeva, Larisa and Heyward, Joe and Banino, Andrea and Mathur, Mrinal and Pascanu, Razvan and Osindero, Simon and de Martino, Benedetto and Velickovic, Petar and Patraucean, Viorica},
+  title   = {Competing biases underlie overconfidence and underconfidence in {LLMs}},
+  journal = {Nature Machine Intelligence},
+  year    = {2026},
+  doi     = {10.1038/s42256-026-01217-9}
+}
+
+@article{dentella2026biases,
+  author  = {Dentella, Vittoria and Marelli, Marco and Rinaldi, Luca},
+  title   = {{LLMs} displaying less cognitive bias are not necessarily better decision makers},
+  journal = {Nature Machine Intelligence},
+  year    = {2026},
+  doi     = {10.1038/s42256-026-01208-w}
+}
+
+@article{germani2025source,
+  author  = {Germani, Federico and Spitale, Giovanni},
+  title   = {Source framing triggers systematic bias in large language models},
+  journal = {Science Advances},
+  year    = {2025},
+  doi     = {10.1126/sciadv.adz2924}
+}
+
+@article{cheung2025amplified,
+  author  = {Cheung, Vanessa and Maier, Maximilian and Lieder, Falk},
+  title   = {Large language models show amplified cognitive biases in moral decision-making},
+  journal = {Proceedings of the National Academy of Sciences},
+  year    = {2025},
+  doi     = {10.1073/pnas.2412015122}
+}
+
+@article{steyvers2025what,
+  author  = {Steyvers, Mark and Tejeda, Heliodoro and Kumar, Aakriti and Belem, Catarina and Karny, Sheer and Hu, Xinyue and Mayer, Lukas W. and Smyth, Padhraic},
+  title   = {What large language models know and what people think they know},
+  journal = {Nature Machine Intelligence},
+  volume  = {7},
+  pages   = {221--231},
+  year    = {2025},
+  doi     = {10.1038/s42256-024-00976-7}
+}
+
+@article{petty1986elaboration,
+  author  = {Petty, Richard E. and Cacioppo, John T.},
+  title   = {The elaboration likelihood model of persuasion},
+  journal = {Advances in Experimental Social Psychology},
+  volume  = {19},
+  pages   = {123--205},
+  year    = {1986}
+}
+
+@article{tversky1974judgment,
+  author  = {Tversky, Amos and Kahneman, Daniel},
+  title   = {Judgment under uncertainty: Heuristics and biases},
+  journal = {Science},
+  volume  = {185},
+  pages   = {1124--1131},
+  year    = {1974},
+  doi     = {10.1126/science.185.4157.1124}
+}
+
+@inproceedings{zou2025poisonedrag,
+  author    = {Zou, Wei and Geng, Runpeng and Wang, Binghui and Jia, Jinyuan},
+  title     = {{PoisonedRAG}: Knowledge Corruption Attacks to Retrieval-Augmented Generation of Large Language Models},
+  booktitle = {USENIX Security Symposium},
+  year      = {2025},
+  eprint    = {2402.07867},
+  archivePrefix = {arXiv}
+}
+
+@article{shumailov2024curse,
+  author  = {Shumailov, Ilia and Shumaylov, Zakhar and Zhao, Yiren and Papernot, Nicolas and Anderson, Ross and Gal, Yarin},
+  title   = {{AI} models collapse when trained on recursively generated data},
+  journal = {Nature},
+  volume  = {631},
+  pages   = {755--759},
+  year    = {2024},
+  doi     = {10.1038/s41586-024-07566-y}
+}
+
+@article{dahl2024hallucinating,
+  author  = {Dahl, Matthew and Magesh, Varun and Suzgun, Mirac and Ho, Daniel E.},
+  title   = {Hallucinating Law: Legal Mistakes with Large Language Models are Pervasive},
+  journal = {Stanford RegLab},
+  year    = {2024},
+  eprint  = {2401.01301},
+  archivePrefix = {arXiv}
+}
+
+@article{sperber2010vigilance,
+  author  = {Sperber, Dan and Clement, Fabrice and Heintz, Christophe and Mascaro, Olivier and Mercier, Hugo and Origgi, Gloria and Wilson, Deirdre},
+  title   = {Epistemic Vigilance},
+  journal = {Mind and Language},
+  volume  = {25},
+  number  = {4},
+  pages   = {359--393},
+  year    = {2010},
+  doi     = {10.1111/j.1468-0017.2010.01394.x}
+}
+
+@article{geng2025controlillusion,
+  author  = {Geng, Yifan and others},
+  title   = {Control Illusion: The Failure of Instruction Hierarchies in Large Language Models},
+  journal = {arXiv preprint arXiv:2502.15851},
+  year    = {2025}
+}
+
+@article{commsmed2025adversarial,
+  author  = {{Commun. Med. authors}},
+  title   = {Multi-model assurance analysis showing large language models are highly vulnerable to adversarial hallucination attacks during clinical decision support},
+  journal = {Communications Medicine},
+  year    = {2025},
+  doi     = {10.1038/s43856-025-01021-3}
+}
+
+@inproceedings{shi2023irrelevant,
+  author    = {Shi, Freda and Chen, Xinyun and Misra, Kanishka and Scales, Nathan and Dohan, David and Chi, Ed and Sch\"arli, Nathanael and Zhou, Denny},
+  title     = {Large Language Models Can Be Easily Distracted by Irrelevant Context},
+  booktitle = {International Conference on Machine Learning (ICML)},
+  year      = {2023},
+  eprint    = {2302.00093},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{lewis2020rag,
+  author    = {Lewis, Patrick and Perez, Ethan and Piktus, Aleksandra and Petroni, Fabio and Karpukhin, Vladimir and Goyal, Naman and K\"uttler, Heinrich and Lewis, Mike and Yih, Wen-tau and Rockt\"aschel, Tim and Riedel, Sebastian and Kiela, Douwe},
+  title     = {Retrieval-Augmented Generation for Knowledge-Intensive {NLP} Tasks},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2020}
+}

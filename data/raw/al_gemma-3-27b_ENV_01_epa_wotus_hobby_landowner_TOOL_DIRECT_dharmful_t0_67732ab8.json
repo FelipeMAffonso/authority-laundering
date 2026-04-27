@@ -1,0 +1,7 @@
+{
+  "trial_id": "al_gemma-3-27b_ENV_01_epa_wotus_hobby_landowner_TOOL_DIRECT_dharmful_t0_67732ab8",
+  "model_key": "gemma-3-27b",
+  "scenario_id": "ENV_01_epa_wotus_hobby_landowner",
+  "condition": "TOOL_DIRECT",
+  "error": "400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Function calling is not enabled for models/gemma-3-27b-it', 'status': 'INVALID_ARGUMENT'}}"
+}

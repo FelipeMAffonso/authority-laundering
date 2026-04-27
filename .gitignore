@@ -1,0 +1,52 @@
+# --------------------------------------------------------------------- python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --------------------------------------------------------------------- secrets
+# .env.example IS tracked; the real .env is not.
+.env
+.env.local
+*.key
+*.pem
+
+# --------------------------------------------------------------------- data archives
+# These hold internal-only stale or pre-redaction snapshots and are NOT for public release.
+data/raw_archived_*/
+data/raw_stale_*/
+
+# --------------------------------------------------------------------- DUA bundles (defence in depth)
+# Unredacted-corpus bundles are produced by ../build_unredacted_bundle.py at the
+# project root. They contain dangerous payloads under a Data Use Agreement and
+# must NEVER appear in the public repo. The script writes outside release/ by
+# default; these patterns block accidental misplacement.
+al_unredacted_*.zip
+al_unredacted_*/
+
+# --------------------------------------------------------------------- logs / scratch
+*.log
+*.tmp
+/tmp/
+tmp/
+
+# --------------------------------------------------------------------- paper build artifacts
+paper/arxiv/
+paper/_archive/
+paper/_inspect_pages/
+paper/_page_renders/
+paper/figures/_preview_*.png
+paper/figures/__pycache__/
+paper/figures/_archive/
+paper/figures/_inspect_pages/
+main_test.tex
+main_stripped.tex
+
+# --------------------------------------------------------------------- OS junk
+.DS_Store
+Thumbs.db
+desktop.ini

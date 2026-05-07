@@ -1,0 +1,47 @@
+T3 - Probing-representation lower bound (Pinsker + Le Cam + KR)
+   (a) TV(P1, P2) >= Delta_nb / (2 M)    (Kantorovich-Rubinstein)
+   (b) alpha_star >= 1/2 + Delta_nb / (4 M)    (Le Cam)
+   (c) KL(P1 || P2) >= Delta_nb^2 / (2 M^2)    (Pinsker)
+   seed=42, time=2026-05-06 20:21:22
+------------------------------------------------------------------------------
+[SymPy] symbolic verification of the (a)+(b)+(c) chain
+  Bernoulli E_P1[psi] - E_P2[psi] = -p*psi(0) + p*psi(1) + psi(0)*q - psi(1)*q
+  factor: (p - q) * (psi(1) - psi(0)) with |psi| <= M => |psi(1) - psi(0)| <= 2M
+  => |E_P1[psi] - E_P2[psi]| <= 2 M * |p - q| = 2 M * TV(P1, P2)
+  Le Cam Bernoulli (p > q) residual: 0  (must be 0)
+  D(q, q) = KL - 2 (p-q)^2 at p=q: 0  (must be 0)
+  d^2 D / dp^2 at p=q: (-4*q*(q - 1) - 1)/(q*(q - 1))
+  Pinsker on Bernoulli (D >= 0 via curvature): True
+  Justification: Cover & Thomas Theorem 11.6.1 (Pinsker's inequality);
+    the binary case is the canonical tight one.
+[SymPy] PASS=True
+------------------------------------------------------------------------------
+[NumPy] numerical witness over 32 configurations, n_sim=100000
+  k=00 p=0.747 q=0.445 TV=0.3016 KL=0.1876 2TV^2=0.1819 alpha_pred=0.6508 alpha_sim=0.6502
+  k=01 p=0.276 q=0.715 TV=0.4396 KL=0.4135 2TV^2=0.3865 alpha_pred=0.7198 alpha_sim=0.7204
+  k=02 p=0.276 q=0.695 TV=0.4181 KL=0.3693 2TV^2=0.3496 alpha_pred=0.7091 alpha_sim=0.7077
+
+  Multinomial witness on a 4-point support:
+    TV=0.4000 KL=0.4564 2TV^2=0.3200 Pinsker margin=+0.1364
+
+  Activation bridge (TV >= Delta_nb / 2M):
+    trial 0: p=0.663 q=0.536 M=3.30 Delta_nb=0.836 bound=0.1266 TV=0.1266 margin=+0.000000
+    trial 1: p=0.418 q=0.513 M=3.92 Delta_nb=0.748 bound=0.0953 TV=0.0953 margin=+0.000000
+    trial 2: p=0.624 q=0.181 M=4.33 Delta_nb=3.834 bound=0.4423 TV=0.4423 margin=+0.000000
+    trial 3: p=0.203 q=0.435 M=4.40 Delta_nb=2.041 bound=0.2319 TV=0.2319 margin=-0.000000
+    trial 4: p=0.531 q=0.875 M=4.41 Delta_nb=3.039 bound=0.3448 TV=0.3448 margin=+0.000000
+
+  totals: fail_pinsker=0, fail_lecam=0, fail_chain=0, fail_kr=0
+  min Pinsker margin: +0.000003, max LeCam err: 0.003453, min chain margin: -0.000000
+[NumPy] PASS=True
+------------------------------------------------------------------------------
+[Z3] SMT counter-model search for Le Cam identity (linear arithmetic)
+  Z3 check (Le Cam identity violation, p >= q): unsat
+  Z3 check (KR / activation-bridge violation): unsat
+  Pinsker (binary KL >= 2 TV^2): outside Z3's decidable theory;
+    verified by SymPy + NumPy with margin reporting.
+  Z3 KR equality witness (|psi|=M attains 2M*TV): sat
+[Z3] PASS=True
+------------------------------------------------------------------------------
+VERIFIER COVERAGE: SymPy=True NumPy=True Z3=True  (3/3)
+THEOREM 3 STATUS: PASS (>=2 verifiers agree)

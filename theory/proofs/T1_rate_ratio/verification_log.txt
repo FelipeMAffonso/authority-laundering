@@ -1,0 +1,39 @@
+T1 - Rate-ratio bound under 1-Lipschitz logit-compliance
+   logit gamma(c, h1) - logit gamma(c, h2) <= logit pi(h1) - logit pi(h2)
+   seed=42, time=2026-05-06 20:21:21
+------------------------------------------------------------------------------
+[SymPy] symbolic verification of the rate-ratio decomposition
+  posterior-logodds decomposition (h1): residual=0
+  posterior-logodds decomposition (h2): residual=0
+  decomposition match: True
+  linear-g gap: |beta * Delta_ell| = beta*Abs(Delta_ell) (<= |Delta_ell| when 0 < beta <= 1)
+  equality-at-beta=1 residual: 0  (must equal 0)
+  Lipschitz integral form: g(a)-g(b) = Integral(h(t), (t, b, a))
+  by |integral_b^a h(t) dt| <= integral_b^a |h(t)| dt <= |a - b|
+  (triangle inequality + |h(t)| <= 1 a.e.)
+  signed-inequality combination: g monotone + 1-Lipschitz =>
+    g(a) - g(b) <= a - b for a >= b.
+[SymPy] PASS=True
+------------------------------------------------------------------------------
+[NumPy] numerical witness over 32 configurations
+  k=00 fam=linear             pi=(0.747,0.445) lam=+2.152 |LHS|=1.0660 |RHS|=1.3013 margin=+0.2353
+  k=00 fam=tanh-compressor    pi=(0.747,0.445) lam=+2.152 |LHS|=0.8054 |RHS|=1.3013 margin=+0.4959
+  k=00 fam=clipped-identity   pi=(0.747,0.445) lam=+2.152 |LHS|=1.3013 |RHS|=1.3013 margin=+0.0000
+  k=01 fam=linear             pi=(0.678,0.135) lam=+2.854 |LHS|=1.8785 |RHS|=2.6024 margin=+0.7239
+  k=01 fam=tanh-compressor    pi=(0.678,0.135) lam=+2.854 |LHS|=0.2793 |RHS|=2.6024 margin=+2.3231
+  k=01 fam=clipped-identity   pi=(0.678,0.135) lam=+2.854 |LHS|=2.6024 |RHS|=2.6024 margin=+0.0000
+  k=02 fam=linear             pi=(0.735,0.757) lam=-2.231 |LHS|=0.0353 |RHS|=0.1185 margin=+0.0832
+  k=02 fam=tanh-compressor    pi=(0.735,0.757) lam=-2.231 |LHS|=0.0915 |RHS|=0.1185 margin=+0.0270
+  k=02 fam=clipped-identity   pi=(0.735,0.757) lam=-2.231 |LHS|=0.1185 |RHS|=0.1185 margin=+0.0000
+  total checks: 96, failures: 0, min margin: -0.000000
+  equality check (beta=1 identity g): LHS=1.694596, RHS=1.694596
+[NumPy] PASS=True
+------------------------------------------------------------------------------
+[Z3] SMT counter-model search for the rate-ratio bound
+  Z3 check (Lipschitz->bound): unsat
+  Z3 check (signed bound, ell1 >= ell2): unsat
+  Z3 equality witness (gap = 3): sat
+[Z3] PASS=True
+------------------------------------------------------------------------------
+VERIFIER COVERAGE: SymPy=True NumPy=True Z3=True  (3/3)
+THEOREM 1 STATUS: PASS (>=2 verifiers agree)

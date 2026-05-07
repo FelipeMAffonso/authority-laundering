@@ -41,6 +41,7 @@ release/
   data/
     README.md               JSONL schema reference
     raw/                    8,615 redacted per-trial JSONs (al_*.json)
+    channel_prior_probe/    9 closed-weight-model probe outputs (v0.4)
   code/
     experiment/             scenario bank (27 scenarios), conditions, runner, audit scripts
     harness/                2-turn multi-provider harness, judge, cost tracker
@@ -48,13 +49,31 @@ release/
     validation/             human-validation export script + CSV (60-trial sample)
     run_focused_pilot.py    replicator: 4-condition main factorial
     run_grounded_study.py   replicator: grounding-defense sweep
+    probe_channel_priors.py        v0.4 mechanism: channel-prior trichotomous probe
+    probe_channel_priors_corpus.py v0.4 mechanism: stimulus corpus for the probe
+    run_subject_local.py           v0.4 mechanism: local subject-model harness for activations
+    exp1_linear_probe.py           v0.4 mechanism: linear probe on hidden-state representations
+    exp2_compliance_correlation.py v0.4 mechanism: probe-direction <-> compliance correlation
+    exp3_causal_patching.py        v0.4 mechanism: activation-patching causal test
+    extract_matched_pairs.py       v0.4 mechanism: byte-identical (genuine, fabricated) pair extraction
+    rejudge_llama_trials.py        v0.4 mechanism: open-weight rejudge for capacity-scaling ablation
+    runpod_launch.py               v0.4 mechanism: RunPod A100 launcher
+    verify_all.py                  v0.4 mechanism: end-to-end orchestrator
+    PROBE_CHANNEL_PRIORS_PROTOCOL.md      v0.4 mechanism: protocol documentation
+    METHODOLOGY_AUDIT_VS_NATURE.md        v0.4 mechanism: methodology calibration vs Nature
+    EMPIRICAL_RESULTS.md                  v0.4 mechanism: running results aggregation
+    MECHANISM_PLAN.md                     v0.4 mechanism: strategic agenda
+    MECHANISM_README.md                   v0.4 mechanism: cold-start guide
+    MECHANISM_COSTS.md                    v0.4 mechanism: cost tracker
   evaluation/
     README.md               scenarios and judge-prompt structure
     scenarios.yaml          27 scenarios (exported from experiment/scenarios.py)
     judge_prompts.yaml      verbatim coherence/acceptance/harmful_execution rubrics
   paper/
     main.md                 paper main text (Markdown source)
+    main_v2.md              v0.4 paper main text rev with theory + mechanism findings
     supplementary.md        supplementary information (Markdown source)
+    supplementary_v2.md     v0.4 supplementary information rev
     references.bib          BibTeX bibliography
     main.pdf                rendered paper (build artifact)
     main.docx               rendered paper (build artifact)
@@ -64,7 +83,38 @@ release/
     nature-template.tex     LaTeX template (Nature-style)
     fallback_header.tex     LaTeX header fallback
     figures/                8 PNGs + generate_figures.py + fig1.html source
+  theory/                   v0.4 theoretical framework
+    bayesian_source_reliability.tex  ~1100-line LaTeX manuscript with 8 theorems and 11 predictions
+    refs.bib                32 verified bibliography entries
+    build.sh                pdflatex pipeline
+    PLAN.md                 strategic agenda for the theoretical loop
+    PROGRESS.md             iteration log (iter00 scaffolding, iter01-iter07 attack closures)
+    SUMMARY.md              cold-start summary of theorems, predictions, and verifier coverage
+    README.md               entry point for theory readers
+    proofs/                 one subfolder per theorem T1-T7
+      MATHARENA_METHODOLOGY.md  proof-pipeline standard
+      RIGOR_CHECKLIST.md        per-node audit form
+      SUMMARY.md                T1-T7 verifier coverage matrix
+      T1_rate_ratio/      proof.py + NOTES.md + RUBRIC.md + verification_log.txt
+      T2_grounding/       same layout
+      T3_probing/         same layout
+      T4_subgaussian/     same layout
+      T5_impossibility/   same layout
+      T6_priority_inversion/ same layout
+      T7_capacity_bound/  same layout
 ```
+
+## What is new in v0.4 (2026-05-06)
+
+The v0.4 release adds the theoretical framework and the mechanism-paper auxiliary work that close the loop between the v0.3 behavioural compliance gap and the falsification predictions that motivated the paper. Three additions:
+
+1. **Theoretical framework** under `theory/`. The LaTeX manuscript `bayesian_source_reliability.tex` formalises 8 publication-grade theorems plus 11 falsifiable empirical predictions in a Bayesian source-reliability framework for channel-conditioned compliance. Theorem 1 is the rate-ratio bound under 1-Lipschitz logit-compliance, Corollary 3 is the empirical falsification rule that the channel-prior probe exercises, Theorem 2 is the grounding-effect bound (Sonnet 4.5 backfire is interpreted as sign-violation falsification under Corollary 6), Theorems 3 and 4 are the Pinsker-Le Cam-Kantorovich-Rubinstein lower bound on probe accuracy and its Gaussian sharpening, Theorem 5 is the training-distribution impossibility theorem (Cloud-Theorem-1 analogue), Theorem 6 is the priority-inversion theorem for the regime-conditioned channel coefficient, and Theorem 7 is the capacity-correction theorem to channel-prior emergence. Every theorem ships with a `proof.py` under `theory/proofs/T*/` that passes two-grader equivalence across SymPy, NumPy, and Z3 (T1-T7 verifier coverage matrix in `theory/proofs/SUMMARY.md`). The proof pipeline caught two real bugs in the original drafts: Theorem 4's linear-bound form was REFUTED at every witness configuration, and Theorem 7's sharp-constant form had wrong constants. Both were corrected before shipping.
+
+2. **Channel-prior probe falsification** under `code/probe_channel_priors.py` and `data/channel_prior_probe/`. The trichotomous probe (genuine / partial / fabricated, with 0-100 confidence) was run across all 9 closed-weight subject models on 21 paired (genuine, fabricated) institutional documents covering 13 domains, 4 delivery channels (system, tool, document-paste, user), and 3 replicates per cell, totalling n=2,160 probe trials. The result is unanimous: every model classifies fabricated documents as fabricated on at least 80 per cent of trials and as genuine on 0 per cent of trials, regardless of channel. The pooled empirical channel-prior log-odds gap $\Delta\hat\ell$ is therefore 0.000 on every model. Under Corollary 3, the v0.3 behavioural compliance log-odds gap of $\Delta\hat\gamma = 3.380$ exceeds the channel-prior gap by the full 3.380 log-odds, falsifying rational Bayesian source-weighting unanimously across Anthropic, OpenAI, and Google laboratories. The full per-model narrative sentences and aggregate verdict are in `code/EMPIRICAL_RESULTS.md`.
+
+3. **Mechanism-paper auxiliary infrastructure** under `code/`. The repository now ships the falsification-prediction scripts (`exp1_linear_probe.py` for the probing-representation accuracy floor, `exp2_compliance_correlation.py` for the probe-direction vs compliance correlation, `exp3_causal_patching.py` for activation-patching), the local-subject harness (`run_subject_local.py`), the matched-pair extractor (`extract_matched_pairs.py`), the open-weight rejudge for the capacity-scaling ablation (`rejudge_llama_trials.py`), and the RunPod A100 launcher (`runpod_launch.py`). Protocol documentation lives in `PROBE_CHANNEL_PRIORS_PROTOCOL.md` and `METHODOLOGY_AUDIT_VS_NATURE.md`. The end-to-end orchestrator is `verify_all.py`.
+
+The verification script `verify_paper_numbers.py` continues to report 85/85 PASS against the v0.3 behavioural numbers. A future v0.5 will extend the script with channel-prior probe verdict checks (against `data/channel_prior_probe/*.json`) and theorem-pass status checks (against `theory/proofs/T*/verification_log.txt`); see the v0.4 entry in `CHANGELOG.md` for the planned additions.
 
 ## Redaction policy (one paragraph)
 

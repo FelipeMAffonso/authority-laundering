@@ -188,7 +188,7 @@
   url           = {https://arxiv.org/abs/2403.02691}
 }
 
-@misc{chen2025chatinject,
+@misc{chang2025chatinject,
   title         = {{ChatInject}: Abusing chat templates for prompt injection in {LLM} agents},
   author        = {Chang, Hwan and Jun, Yonghyun and Lee, Hwanhee},
   year          = {2025},
@@ -540,11 +540,13 @@
   doi     = {10.1111/j.1468-0017.2010.01394.x}
 }
 
-@article{geng2025controlillusion,
-  author  = {Geng, Yifan and others},
-  title   = {Control Illusion: The Failure of Instruction Hierarchies in Large Language Models},
-  journal = {arXiv preprint arXiv:2502.15851},
-  year    = {2025}
+@inproceedings{geng2025controlillusion,
+  author    = {Geng, Yilin and Li, Haonan and Mu, Honglin and Han, Xudong and Baldwin, Timothy and Abend, Omri and Hovy, Eduard and Frermann, Lea},
+  title     = {Control Illusion: The Failure of Instruction Hierarchies in Large Language Models},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  year      = {2026},
+  eprint    = {2502.15851},
+  archivePrefix = {arXiv}
 }
 
 @article{commsmed2025adversarial,
@@ -569,4 +571,123 @@
   title     = {Retrieval-Augmented Generation for Knowledge-Intensive {NLP} Tasks},
   booktitle = {Advances in Neural Information Processing Systems},
   year      = {2020}
+}
+
+@inproceedings{hardt2016fairness,
+  author        = {Hardt, Moritz and Price, Eric and Srebro, Nathan},
+  title         = {Equality of Opportunity in Supervised Learning},
+  booktitle     = {Advances in Neural Information Processing Systems},
+  volume        = {29},
+  year          = {2016},
+  eprint        = {1610.02413},
+  archivePrefix = {arXiv}
+}
+
+% =============================================================================
+% MACHINE-CHECKED PROOF VERIFICATION + INFORMATION-THEORY FOUNDATIONS
+% =============================================================================
+
+@misc{petrov2025proof,
+  title         = {Proof or Bluff? {Evaluating} Large Language Models on the 2025 {USA} {Mathematical} {Olympiad}},
+  author        = {Petrov, Ivan and Dekoninck, Jasper and Beurer-Kellner, Luca and Mar\'echal, Antoine and Vechev, Martin},
+  year          = {2025},
+  eprint        = {2503.21934},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2503.21934},
+  note          = {{ETH} Zurich and {INSAIT} Sofia}
+}
+
+@book{tsybakov2009introduction,
+  title     = {Introduction to Nonparametric Estimation},
+  author    = {Tsybakov, Alexandre B.},
+  year      = {2009},
+  publisher = {Springer},
+  series    = {Springer Series in Statistics},
+  doi       = {10.1007/b13794},
+  isbn      = {978-0-387-79051-0}
+}
+
+@book{coverThomas2006elements,
+  title     = {Elements of Information Theory},
+  author    = {Cover, Thomas M. and Thomas, Joy A.},
+  year      = {2006},
+  edition   = {2nd},
+  publisher = {Wiley-Interscience},
+  doi       = {10.1002/047174882X},
+  isbn      = {978-0-471-24195-9}
+}
+
+@article{mcnemar1947note,
+  title   = {Note on the Sampling Error of the Difference Between Correlated Proportions or Percentages},
+  author  = {McNemar, Quinn},
+  journal = {Psychometrika},
+  volume  = {12},
+  number  = {2},
+  pages   = {153--157},
+  year    = {1947},
+  doi     = {10.1007/BF02295996}
+}
+
+% =============================================================================
+% MACHINE BEHAVIOUR + AI SAFETY ANCHORS
+% =============================================================================
+
+@article{ibrahim2026warm,
+  title   = {Training language models to be warm can reduce accuracy and increase sycophancy},
+  author  = {Ibrahim, Lujain and Hafner, Danijar and Rocher, Lily},
+  journal = {Nature},
+  volume  = {652},
+  pages   = {1159--1165},
+  year    = {2026},
+  doi     = {10.1038/s41586-026-10410-0},
+  eprint  = {2507.21919},
+  archivePrefix = {arXiv}
+}
+
+@misc{denison2024sycophancy,
+  title         = {Sycophancy to Subterfuge: Investigating Reward-Tampering in Large Language Models},
+  author        = {Denison, Carson and MacDiarmid, Monte and Barez, Fazl and Duvenaud, David and Kravec, Shauna and Marks, Samuel and Schiefer, Nicholas and Soklaski, Ryan and Tamkin, Alex and Kaplan, Jared and Shlegeris, Buck and Bowman, Samuel R. and Perez, Ethan and Hubinger, Evan},
+  year          = {2024},
+  eprint        = {2406.10162},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG}
+}
+
+@misc{lindsey2025introspection,
+  title        = {Emergent Introspective Awareness in Large Language Models},
+  author       = {Lindsey, Jack},
+  year         = {2025},
+  howpublished = {Transformer Circuits Thread, Anthropic},
+  url          = {https://transformer-circuits.pub/2025/introspection/index.html},
+  note         = {Defines introspection as causal dependence of self-report on internal state.}
+}
+
+@misc{openai2024modelspec,
+  title        = {OpenAI Model Spec},
+  author       = {{OpenAI}},
+  year         = {2024},
+  howpublished = {Policy document, 2024-05-08},
+  url          = {https://cdn.openai.com/spec/model-spec-2024-05-08.html},
+  note         = {Establishes the default ranked source ordering Platform > Developer > User > Tool that frontier RLHF is meant to internalise.}
+}
+
+@misc{guan2024deliberative,
+  title         = {Deliberative Alignment: Reasoning Enables Safer Language Models},
+  author        = {Guan, Melody Y. and Joglekar, Manas and Wallace, Eric and Jain, Saachi and Barak, Boaz and Helyar, Alec and Dias, Rachel and Vallone, Andrea and Ren, Hongyu and Wei, Jason and Chung, Hyung Won and Toyer, Sam and Heidecke, Johannes and Beutel, Alex and Glaese, Amelia},
+  year          = {2024},
+  eprint        = {2412.16339},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  note          = {OpenAI; describes RLHF as installing a "strong prior" for reasoning from safety specifications.}
+}
+
+@misc{wu2024ise,
+  title         = {Instructional Segment Embedding: Improving LLM Safety with Instruction Hierarchy},
+  author        = {Wu, Tong and Zhang, Shujian and Song, Kaiqiang and Xu, Silei and Zhao, Sanqiang and Agrawal, Ravi and Indurthi, Sathish Reddy and Xiang, Chong and Mittal, Prateek and Zhou, Wenxuan},
+  year          = {2024},
+  eprint        = {2410.09102},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  note          = {ICLR 2025; explicit reliability-graded source priors are what the segment embedding encodes.}
 }

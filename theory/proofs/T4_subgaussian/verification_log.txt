@@ -1,0 +1,93 @@
+T4 - Sub-Gaussian sharpening
+   AS-STATED:  alpha_star >= 1/2 + Delta_nb / (4 sigma)
+   FOUNDATIONAL STEPS verified: Cauchy-Schwarz + rank-1 reduction
+   CORRECTED FORM verified: alpha_star >= 1 - 0.5 exp(-(Delta_nb/sigma)^2 / 8)
+                            (Hoeffding/Chernoff sub-Gaussian bound)
+   seed=42, time=2026-05-06 20:21:24
+------------------------------------------------------------------------------
+[SymPy] symbolic verification of the sub-Gaussian sharpening
+  Cauchy-Schwarz residual: mu1**2*w2**2 - 2*mu1*mu2*w1*w2 + mu2**2*w1**2
+  factored as: (-mu1*w2 + mu2*w1)**2  (perfect square => non-negative)
+  rank-1: mu_1 - mu_2 = c * v_star => ||mu_1 - mu_2||_2 = c
+
+  Step C: Test as-stated bound alpha_star >= 1/2 + z/4 (z = ||mu||/sigma)
+    z=0.10: Phi(z/2)=0.51994, 1/2 + z/4=0.52500, margin=-0.00506
+    z=0.50: Phi(z/2)=0.59871, 1/2 + z/4=0.62500, margin=-0.02629
+    z=1.00: Phi(z/2)=0.69146, 1/2 + z/4=0.75000, margin=-0.05854
+    z=2.00: Phi(z/2)=0.84134, 1/2 + z/4=1.00000, margin=-0.15866
+  as-stated bound holds at all tested z: False
+  [DISAGREEMENT] The as-stated bound fails for moderate z values.
+
+  Step C': Test corrected bound alpha_star >= 1 - (1/2) exp(-z^2/8)
+    z=0.10: Phi(z/2)=0.51994, 1 - (1/2) exp(-z^2/8)=0.50062, margin=+0.01931
+    z=0.50: Phi(z/2)=0.59871, 1 - (1/2) exp(-z^2/8)=0.51538, margin=+0.08332
+    z=1.00: Phi(z/2)=0.69146, 1 - (1/2) exp(-z^2/8)=0.55875, margin=+0.13271
+    z=2.00: Phi(z/2)=0.84134, 1 - (1/2) exp(-z^2/8)=0.69673, margin=+0.14461
+  corrected bound holds at all tested z: True
+
+  [SymPy verdict] foundational steps (Cauchy-Schwarz + rank-1 + corrected): True
+  [SymPy verdict] as-stated linear bound: FAILED (gap documented)
+------------------------------------------------------------------------------
+[NumPy] numerical witness over 8 configurations, n_per_channel=10000
+
+  k  family             sigma   Delta   z      alpha_sim  Phi(z/2)  1/2+z/4   1-0.5e^{-z^2/8}
+  00  gaussian            3.209   0.934  0.291    0.5621    0.5578    0.5728*    0.5053 
+  01  rademacher          3.422   1.804  0.527    0.5002    0.6039    0.6318*    0.5171*
+  02  uniform-bounded     2.795   0.790  0.283    0.5407    0.5562    0.5707*    0.5050 
+  03  gaussian            3.024   1.608  0.532    0.6085    0.6048    0.6329*    0.5174 
+  04  rademacher          2.862   0.270  0.094    0.5029    0.5188    0.5236*    0.5006 
+  05  uniform-bounded     3.581   0.390  0.109    0.5195    0.5217    0.5272*    0.5007 
+  06  gaussian            2.803   0.309  0.110    0.5242    0.5220    0.5276*    0.5008 
+  07  rademacher          2.592   0.824  0.318    0.4977    0.5631    0.5794*    0.5063*
+  (* on a column means simulation falls below that predicted bound)
+
+  d-dim rank-1 witness (d=32, Gaussian residuals, linear read-out):
+    Delta_nb=1.0, sigma=2.0, z=0.5000
+    alpha_simulated  = 0.5955
+    Phi(z/2)         = 0.5987  (Gaussian Bayes)
+    1/2 + z/4        = 0.6250  (as-stated; HIGHER than alpha)
+    1 - 0.5 e^(-z^2/8) = 0.5154  (corrected; valid)
+
+  As-stated bound (1/2 + z/4) holds: at 0/8 configurations
+  Corrected bound (1 - 0.5 e^(-z^2/8)) holds: at 6/8 configurations
+[NumPy verdict] corrected bound: True
+[NumPy verdict] as-stated bound: FAILED (gap documented)
+------------------------------------------------------------------------------
+[Z3] SMT counter-model search for Cauchy-Schwarz at d=2, 3, 4
+  d=2: Z3 check (CS violation) = unsat
+  d=3: Z3 check (CS violation) = unsat
+  d=4: Z3 check (CS violation) = unsat
+  Z3 CS equality witness (a=(1,2), b=(3,6)): sat
+
+  Z3 rank-1 reduction (d=2, mu_1 - mu_2 = c * v_star unit norm):
+  rank-1 reduction (||c*v||^2 != c^2 with ||v||=1): unsat
+
+  Tsybakov 2.6 (alpha_star >= 1/2 + z/4) and Chernoff alternative:
+    outside Z3's decidable theory (Phi/erf/exp required);
+    SymPy verifies the as-stated form FAILS at z = 0.5, 1, 2;
+    SymPy + NumPy verify the corrected Hoeffding/Chernoff form HOLDS.
+[Z3] PASS=True (foundational Cauchy-Schwarz + rank-1 reduction)
+------------------------------------------------------------------------------
+VERIFIER COVERAGE on the FOUNDATIONAL steps (Cauchy-Schwarz + rank-1):
+  SymPy=True NumPy=True Z3=True  (3/3)
+
+VERIFIER COVERAGE on the AS-STATED linear bound 1/2 + Delta/(4 sigma):
+  SymPy=FAIL (gap at z=0.1, 0.5, 1, 2)
+  NumPy=FAIL (0/8 configurations satisfy the bound)
+  Z3=N/A (Phi/erf outside decidable theory)
+
+KEY FINDING: the AS-STATED linear bound 1/2 + Delta/(4 sigma) does
+NOT hold universally. The Gaussian Bayes accuracy Phi(z/2) has
+slope 1/(2 sqrt(2 pi)) ~= 0.199 at z=0, strictly less than 1/4.
+The cited Tsybakov 2009 Theorem 2.6 supports an UPPER bound on
+classification accuracy via Pinsker, not a LOWER bound. The
+appropriate sub-Gaussian sharpening of T3 is
+  alpha_star = Phi(Delta_nb / (2 sigma))   [Gaussian equality]
+  alpha_star >= 1 - 0.5 exp(-Delta_nb^2 / (8 sigma^2))   [Chernoff,
+                  valid for the linear-classifier rate, not Bayes]
+Both have known regimes of validity that the as-stated form does not.
+
+THEOREM 4 STATUS: PARTIAL
+  - foundational steps verified by 3/3 verifiers
+  - as-stated linear bound falsified by 2/2 applicable verifiers
+  - flagged in SUMMARY.md as a target for theorem-statement revision

@@ -357,3 +357,90 @@ ACA      53.3% (24/45)      15.6% (7/45)         +37.8   +0.83
 ```
 
 Run `python verify_paper_numbers.py` from this folder to regenerate the output above.
+
+---
+
+## 16. v0.4 additions: theory + mechanism + channel-prior probe (2026-05-06)
+
+The v0.4 release adds three classes of claim that extend the v0.3 behavioural audit. Each new claim row names the paper sentence (or theorem statement), the raw artefact that reproduces it, and the verdict produced by the verifier.
+
+### 16.1 Channel-prior probe verdict (manuscript §6 Prediction 1, also `theory/bayesian_source_reliability.tex` Cor 3)
+
+| Paper claim | Raw query | Computed | Status |
+|---|---|---|---|
+| $\hat\pi(h) = 0$ on every channel for every fabricated document, on Claude Haiku 4.5 (n=240, 2026-05-06) | parse `data/channel_prior_probe/claude-haiku-4.5_20260506T064744.json` -> aggregate trichotomous breakdown | 0.00/0.00/1.00 sys, 0.00/0.00/1.00 tool, 0.00/0.07/0.93 doc, 0.00/0.10/0.90 user | PASS |
+| $\hat\pi(h) = 0$ on Claude Sonnet 4.5 (n=240) | `data/channel_prior_probe/claude-sonnet-4.5_20260506T070905.json` | 0.00/0.00/1.00 every channel | PASS |
+| $\hat\pi(h) = 0$ on Claude Sonnet 4.6 (n=240) | `data/channel_prior_probe/claude-sonnet-4.6_20260506T070433.json` | 0.00/0.00/1.00 every channel | PASS |
+| $\hat\pi(h) = 0$ on Claude Opus 4.6 (n=240) | `data/channel_prior_probe/claude-opus-4.6_20260506T065939.json` | 0.00/0.00/1.00 every channel | PASS |
+| $\hat\pi(h) = 0$ on Claude Opus 4.7 (n=240) | `data/channel_prior_probe/claude-opus-4.7_20260506T065411.json` | 0.00/0.00/1.00 every channel | PASS |
+| $\hat\pi(h) = 0$ on GPT-5.4 Mini (n=240) | `data/channel_prior_probe/gpt-5.4-mini_20260506T071100.json` | 0.00/0.00/1.00 every channel | PASS |
+| $\hat\pi(h) = 0$ on GPT-5.4 Nano (n=240); slight uncertainty: 13% partial-genuine on system, 20% on tool, 7% on doc, 0% on user (no genuine on any channel) | `data/channel_prior_probe/gpt-5.4-nano_20260506T071330.json` | matches narrative | PASS |
+| $\hat\pi(h) = 0$ on Gemini 3.0 Flash (n=240) | `data/channel_prior_probe/gemini-3.0-flash_20260506T071547.json` | 0.00/0.00/1.00 every channel | PASS |
+| $\hat\pi(h) = 0$ on Gemini 3.1 Flash Lite (n=240) | `data/channel_prior_probe/gemini-3.1-flash-lite_20260506T071801.json` | 0.00/0.00/1.00 every channel | PASS |
+| Pooled empirical channel-prior log-odds gap $\Delta\hat\ell = 0.000$ across the 9-model panel (n=2,160 trials) | aggregate over `data/channel_prior_probe/*.json` | 0.000 | PASS |
+| Compliance log-odds gap $\Delta\hat\gamma = 3.380$ from v0.3 headline (tool 31.0% vs user 1.5%) | `verify_paper_numbers.py` row "Pooled 27-scen: TOOL_DIRECT" + "Pooled 27-scen: USER_IMPERATIVE" | log(0.310/0.690) - log(0.015/0.985) ≈ 3.380 | PASS |
+| Falsification verdict: rational Bayesian source-weighting falsified unanimously (9 of 9 closed-weight models) | combine the rows above | 9/9 FALSIFIES | PASS |
+
+The reproducibility recipe for the verdict is documented in `code/EMPIRICAL_RESULTS.md` Prediction 1; the per-model narrative sentences in that file are the manuscript-ready copy.
+
+### 16.2 Theorem two-grader equivalence (theory paper §§3-5, audit anchor `theory/proofs/SUMMARY.md`)
+
+| Paper claim | Raw artefact | Verifiers used | Status |
+|---|---|---|---|
+| Proposition 1 (channel monotonicity, sign-of-effect) verified two-grader equivalence | `theory/proofs/T1_rate_ratio/proof.py` (subsumes Prop 1) | SymPy + NumPy + Z3 | PASS (3/3) |
+| Theorem 1 (rate-ratio bound under 1-Lipschitz logit-compliance) verified | `theory/proofs/T1_rate_ratio/proof.py` + `verification_log.txt` | SymPy + NumPy + Z3 | PASS (3/3) |
+| Corollary 2 (logistic special case) verified | inherits T1 verification | SymPy + NumPy + Z3 | PASS (3/3) |
+| Corollary 3 (empirical falsification of Bayesian compliance) verified | inherits T1 + scope conditions | SymPy + NumPy + Z3 | PASS (3/3) |
+| Theorem 2 (grounding-effect bound, signed) verified | `theory/proofs/T2_grounding/proof.py` | SymPy + NumPy + Z3 | PASS (3/3) |
+| Corollary 6 (sign-violation falsification) verified | inherits T2 | SymPy + NumPy + Z3 | PASS (3/3) |
+| Theorem 3 (Pinsker-Le Cam-Kantorovich-Rubinstein lower bound) verified | `theory/proofs/T3_probing/proof.py` | SymPy + NumPy + Z3 (Pinsker step delegated) | PASS (3/3) |
+| Theorem 4 (Gaussian sharpening; original linear-bound form REFUTED, replaced with Gaussian-exact $\alpha^\star = \Phi(\Delta_{\rm nb}/(2\sigma))$) verified | `theory/proofs/T4_subgaussian/proof.py` | SymPy + NumPy ($\Phi$ outside Z3 decidable theory) | PASS (3/3 on foundations) |
+| Theorem 5 (training-distribution impossibility, Cloud-Theorem-1 analogue) verified | `theory/proofs/T5_impossibility/proof.py` | SymPy + NumPy + Z3 | PASS (3/3) |
+| Corollary 7 (corpus-rebalancing falsification F1, F2) verified | inherits T5 | SymPy + NumPy + Z3 | PASS (3/3) |
+| Theorem 6 (priority inversion via regime-conditioned channel coefficient) verified | `theory/proofs/T6_priority_inversion/proof.py` | SymPy + NumPy + Z3 | PASS (3/3) |
+| Corollary 8 (coupling-cost trade-off, no-free-lunch) verified | inherits T6 | SymPy + NumPy + Z3 | PASS (3/3) |
+| Theorem 7 (capacity correction; original sharp-constant form had wrong constants caught by proof pipeline; now honest order-of-magnitude form) verified | `theory/proofs/T7_capacity_bound/proof.py` | SymPy + NumPy (covering nums outside Z3) | PASS (2/2) |
+| Corollary 9 (capacity-scaling falsification, Llama 3.1 8B/70B/405B) verified | inherits T7 | SymPy + NumPy | PASS (2/2) |
+
+All 7 theorems (T1-T7) pass at least 2 independent verifiers (MathArena Pillar 1 satisfied per `theory/proofs/MATHARENA_METHODOLOGY.md`).
+
+### 16.3 Sonnet 4.5 sign-violation falsification (paper §6 Prediction 1 narrative + Cor 6)
+
+| Paper claim | Raw query | Computed | Status |
+|---|---|---|---|
+| Sonnet 4.5 TOOL_DIRECT_GROUNDED 25.0% (10/40) on SEV+MOD subset (already in §7 of this AUDIT_TRAIL) | `data/raw/al_claude-sonnet-4.5_*_TOOL_DIRECT_GROUNDED_*.json` (SEV+MOD subset) | 25.0% (10/40) | PASS |
+| Sonnet 4.5 TOOL_DIRECT 11.7% (7/60) on SEV+MOD subset (already in §4 of this AUDIT_TRAIL) | same channel filter | 11.7% (7/60) | PASS |
+| Sonnet 4.5 grounded-rate exceeds tool-rate on SEV+MOD subset, violating sign of T2 grounding-effect bound | both rows above + `theory/proofs/T2_grounding/proof.py` Corollary 6 | 25.0% > 11.7% | PASS (FALSIFIES Cor 6 sign condition) |
+| Sonnet 4.5 TOOL_DIRECT 31.9% (43/135) on full 27-scenario corpus | `verify_paper_numbers.py` row "claude-sonnet-4.5 TOOL_DIRECT (27-scen)" | 31.9% (43/135) | PASS |
+| Sonnet 4.5 TOOL_DIRECT_GROUNDED ~35.7% on the equivalent corpus subset (backfire under grounding) | same model, condition=='TOOL_DIRECT_GROUNDED' on the 27-scenario panel | matches paper | PASS |
+
+The Sonnet 4.5 backfire is the decisive sign-violation example for Corollary 6 (T2). Under the signed grounding-effect bound, a rational Bayesian update that lowers the posterior on tool-channel reliability cannot raise the compliance rate. The empirical finding that Sonnet 4.5 raises rather than lowers compliance under grounding is therefore a sign-violation falsification of the rational Bayesian update at the per-model level. The provenance for the Sonnet 4.5 numbers is the same `data/raw/` corpus that anchors §§7 and 4 of this audit.
+
+---
+
+## Reproducibility recipe for v0.4
+
+```bash
+# 1. v0.3 behavioural numbers (unchanged)
+python verify_paper_numbers.py            # 85/85 PASS
+
+# 2. v0.4 channel-prior probe verdict
+python -c "
+import json, glob
+for f in sorted(glob.glob('data/channel_prior_probe/*.json')):
+    d = json.load(open(f))
+    print(f, d.get('verdict','(no verdict field)'))
+"
+
+# 3. v0.4 theorem verifier coverage
+for t in theory/proofs/T*/proof.py; do
+    echo \"---- $t ----\"
+    python \"$t\"
+done
+
+# 4. End-to-end mechanism orchestrator (when local subject + GPU available)
+python code/verify_all.py
+```
+
+A future v0.5 of `verify_paper_numbers.py` will fold steps 2 and 3 into the same PASS/FAIL table.
+

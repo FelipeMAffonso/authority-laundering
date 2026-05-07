@@ -1,0 +1,37 @@
+T2 - Grounding-effect bound, signed
+   -log B(F) <= logit gamma(c, h, F) - logit gamma(c, h) <= 0
+   magnitude channel-invariant (at posterior level)
+   seed=42, time=2026-05-06 20:21:22
+------------------------------------------------------------------------------
+[SymPy] symbolic verification of the grounding-effect bound
+  posterior shift on conditioning on F: -log(P_F_R0) + log(P_F_R1)
+  expected (log P(F|R=1)/P(F|R=0) = -log B(F)): log(P_F_R1/P_F_R0)
+  residual: 0  (must be 0)
+  channel-invariance residual (h vs h'): 0  (must be 0)
+  sign claim: B(F) > 1 <=> log(P(F|R=1)/P(F|R=0)) < 0 (algebraic)
+  monotone g preserves sign of the input shift; reduction is non-positive.
+  magnitude bound: 1-Lipschitz g => |compliance shift| <= log B(F)
+[SymPy] PASS=True
+------------------------------------------------------------------------------
+[NumPy] numerical witness over 32 configurations
+  k=00 fam=linear             pi=(0.445,0.823) log_BF=2.333 shift=-1.9113 in [-2.333, 0]: bounds_ok=True
+  k=00 fam=tanh-compressor    pi=(0.445,0.823) log_BF=2.333 shift=-2.2472 in [-2.333, 0]: bounds_ok=True
+  k=00 fam=clipped-identity   pi=(0.445,0.823) log_BF=2.333 shift=-2.3332 in [-2.333, 0]: bounds_ok=True
+  k=01 fam=linear             pi=(0.928,0.735) log_BF=0.328 shift=-0.2366 in [-0.328, 0]: bounds_ok=True
+  k=01 fam=tanh-compressor    pi=(0.928,0.735) log_BF=0.328 shift=-0.0006 in [-0.328, 0]: bounds_ok=True
+  k=01 fam=clipped-identity   pi=(0.928,0.735) log_BF=0.328 shift=-0.3278 in [-0.328, 0]: bounds_ok=True
+  k=02 fam=linear             pi=(0.455,0.384) log_BF=0.428 shift=-0.1275 in [-0.428, 0]: bounds_ok=True
+  k=02 fam=tanh-compressor    pi=(0.455,0.384) log_BF=0.428 shift=-0.1863 in [-0.428, 0]: bounds_ok=True
+  k=02 fam=clipped-identity   pi=(0.455,0.384) log_BF=0.428 shift=-0.4279 in [-0.428, 0]: bounds_ok=True
+  total checks: 96; fail_bounds=0, fail_sign=0, fail_posterior_invariance=0
+  posterior shift invariance max abs diff: +4.44e-16
+[NumPy] PASS=True
+------------------------------------------------------------------------------
+[Z3] SMT counter-model search for the grounding bound
+  Z3 check (negation of bound): unsat
+  Z3 channel-invariance check (posterior shift differs): unsat
+  Z3 equality witness (shift = -log_BF): sat
+[Z3] PASS=True
+------------------------------------------------------------------------------
+VERIFIER COVERAGE: SymPy=True NumPy=True Z3=True  (3/3)
+THEOREM 2 STATUS: PASS (>=2 verifiers agree)

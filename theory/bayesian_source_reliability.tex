@@ -1,0 +1,1143 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{booktabs}
+\geometry{margin=1in}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\title{A Bayesian source-reliability model for channel-conditioned compliance in frontier language models}
+\author{F.~M.~Affonso}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We formalise the channel-as-authority phenomenon documented empirically in frontier
+language models as a Bayesian source-reliability model under which a delivery channel
+carries a learned prior on content reliability. We derive a rate-ratio bound that
+the difference in compliance log-odds across channels cannot exceed the difference
+in channel-prior log-odds, under a 1-Lipschitz-in-logit calibration assumption that
+admits the logistic compliance family as a special case. We then derive a one-sided
+signed bound on the grounding-evidence effect and an information-theoretic lower
+bound on the activation-probing direction that the rate-ratio bound's failure must
+induce, plus a Gaussian-exact sharpening for linear read-outs. Each bound yields a
+falsification corollary that is testable against the existing authority-laundering
+corpus, and the empirical magnitudes falsify rational Bayesian compliance under any
+plausible channel-prior estimate. The framework connects behavioural rate
+measurements to mechanistic activation-probing findings via a Pinsker-Le Cam
+representational lower bound and clarifies the four conditions under which an
+empirical bound violation counts as evidence of a non-Bayesian channel-authority
+heuristic. All four theorems pass two-grader equivalence verification under the
+SymPy + NumPy + Z3 protocol of the proof pipeline.
+\end{abstract}
+
+\section{Setup and notation}
+\label{sec:setup}
+
+Let $\mathcal{C}$ denote the space of declarative content (institutional documents,
+regulations, citations, professional protocols) and $\mathcal{H} = \{\text{sys}, \text{tool}, \text{doc}, \text{user}\}$
+the discrete set of delivery channels considered in the empirical work, in the
+machine-behaviour register of \cite{rahwan2019machine}. A subject model~$M$ receives
+content $c \in \mathcal{C}$ through channel $h \in \mathcal{H}$ and produces a
+compliance indicator $Y \in \{0, 1\}$ where $Y=1$ denotes operationalisation of the
+content. Let $R \in \{0, 1\}$ denote the latent reliability of the content, where
+$R=1$ means the content is genuine institutional material and $R=0$ means it is
+fabricated.
+
+\begin{definition}[Channel prior]
+\label{def:channel-prior}
+The \emph{channel prior} is $\pi(h) := \mathbb{P}(R = 1 \mid h)$, the probability
+that content arriving through channel~$h$ is reliable, marginalised over content.
+\end{definition}
+
+\begin{definition}[Content likelihoods]
+\label{def:content-likelihoods}
+The \emph{content likelihoods} are $L_r(c) := \mathbb{P}(c \mid R=1)$ and
+$L_u(c) := \mathbb{P}(c \mid R=0)$, the probabilities of observing content $c$
+conditional on reliability state.
+\end{definition}
+
+\begin{definition}[Compliance function]
+\label{def:compliance}
+The \emph{compliance function} $\gamma : \mathcal{C} \times \mathcal{H} \to [0,1]$
+maps content and channel to compliance probability,
+$\gamma(c, h) := \mathbb{P}(Y=1 \mid c, h)$.
+\end{definition}
+
+\begin{assumption}[Bayesian compliance]
+\label{ass:bayes}
+The compliance function is a monotonic increasing function of the posterior
+reliability:
+\[
+\gamma(c, h) \;=\; f\!\left(\, \mathbb{P}(R=1 \mid c, h) \,\right),
+\]
+where $f : [0,1] \to [0,1]$ is monotonic increasing and does not depend on $h$.
+\end{assumption}
+
+By Bayes' rule the posterior is
+\begin{equation}
+\label{eq:posterior}
+\mathbb{P}(R=1 \mid c, h) \;=\; \frac{\pi(h)\, L_r(c)}{\pi(h)\, L_r(c) + (1-\pi(h))\, L_u(c)}.
+\end{equation}
+Equivalently, the posterior log-odds decompose as
+\begin{equation}
+\label{eq:posterior-logodds}
+\operatorname{logit} \mathbb{P}(R=1 \mid c, h) \;=\; \operatorname{logit} \pi(h) \;+\; \log\!\bigl[L_r(c) / L_u(c)\bigr],
+\end{equation}
+where $\operatorname{logit}(p) := \log[p/(1-p)]$.
+
+Throughout, let $\ell_h := \operatorname{logit} \pi(h)$ denote the channel-prior
+log-odds and $\lambda(c) := \log[L_r(c)/L_u(c)]$ denote the content log-likelihood
+ratio. Define the compliance function in posterior-log-odds coordinates by
+$g(\ell) := \operatorname{logit} f(\sigma(\ell))$, where $\sigma$ is the standard logistic.
+Under Assumption~\ref{ass:bayes}, the compliance log-odds factor as
+$\operatorname{logit} \gamma(c, h) = g(\ell_h + \lambda(c))$.
+
+\begin{assumption}[Strong matched content and channel-invariant compliance]
+\label{ass:strong-matching}
+Three conditions hold jointly. (i) For any content $c$ entering the rate-ratio
+comparison, the content likelihoods are channel-invariant:
+$L_r(c \mid h) = L_r(c)$ and $L_u(c \mid h) = L_u(c)$ for all $h \in \mathcal{H}$.
+(ii) The compliance function $f$ is channel-invariant in shape and intercept:
+the same $f$ applies on every channel. (iii) The latent reliability $R$ is binary,
+and the channel prior $\pi(h)$ is estimated at the same binary resolution as $f$
+consumes.
+\end{assumption}
+
+Assumption~\ref{ass:strong-matching} is required for the quantitative rate-ratio
+bound below; the sign-of-effect bound (Proposition~\ref{prop:sign}) requires only
+Assumption~\ref{ass:bayes}. The 1-Lipschitz-in-logit calibration condition that
+follows is consistent with the temperature-scaling family of LLM calibrators
+\cite{lamb2025semantic} and with empirical evidence that LLMs broadly follow
+Bayesian update structure with mis-calibrated priors rather than flawed updates
+\cite{gupta2025coinflips}.
+
+\section{Rate-ratio bound under rational source-weighting}
+\label{sec:rate-ratio}
+
+We separate the sign-of-effect claim (which channel attracts more compliance) from
+the quantitative rate-ratio claim (how much more). The first requires only
+Assumption~\ref{ass:bayes}. The second requires Assumption~\ref{ass:strong-matching}
+and a calibration condition on the compliance function, expressed naturally in
+posterior-log-odds coordinates.
+
+\subsection{Sign-of-effect bound}
+
+\begin{proposition}[Channel monotonicity of compliance]
+\label{prop:sign}
+Under Assumption~\ref{ass:bayes} alone, for any matched content $c$ and any channels
+$h_1, h_2$ with $\pi(h_1) \ge \pi(h_2)$,
+$\gamma(c, h_1) \ge \gamma(c, h_2)$.
+\end{proposition}
+
+\begin{proof}
+The posterior $\mathbb{P}(R=1 \mid c, h)$ is monotonically increasing in $\pi(h)$
+for fixed $L_r(c), L_u(c)$, by direct quotient differentiation of
+equation~\eqref{eq:posterior}. Composing with the monotonic increasing $f$ preserves
+the ordering.
+\end{proof}
+
+\begin{corollary}[Sign-of-effect falsification]
+\label{cor:sign-falsification}
+If matched-content empirical estimates satisfy $\hat\gamma(c, h_1) < \hat\gamma(c, h_2)$
+on a channel pair with $\hat\pi(h_1) > \hat\pi(h_2)$, Assumption~\ref{ass:bayes} fails
+regardless of the functional form of $f$.
+\end{corollary}
+
+This sign-of-effect statement is robust to the entire family of monotonic compliance
+functions. It cannot detect over-compliance (a compliance gap larger than the prior
+gap), for which the quantitative bound below is required.
+
+\subsection{Rate-ratio bound}
+
+\begin{theorem}[Rate-ratio bound under 1-Lipschitz logit-compliance]
+\label{thm:rate-ratio}
+Suppose Assumption~\ref{ass:bayes} and Assumption~\ref{ass:strong-matching} hold,
+and the compliance function in posterior-log-odds coordinates,
+$g(\ell) = \operatorname{logit} f(\sigma(\ell))$, is 1-Lipschitz on $\mathbb{R}$:
+$|g(\ell_1) - g(\ell_2)| \le |\ell_1 - \ell_2|$ for all $\ell_1, \ell_2 \in \mathbb{R}$.
+Then for matched content $c$ and channels $h_1, h_2$ with $\pi(h_1), \pi(h_2) \in (0,1)$,
+\begin{equation}
+\label{eq:rate-ratio-bound}
+\operatorname{logit} \gamma(c, h_1) \;-\; \operatorname{logit} \gamma(c, h_2)
+\;\le\; \operatorname{logit} \pi(h_1) \;-\; \operatorname{logit} \pi(h_2),
+\end{equation}
+with equality when $g$ is the identity (linear-in-logit calibration).
+\end{theorem}
+
+\begin{proof}
+By the factorisation following equation~\eqref{eq:posterior-logodds} and
+Assumption~\ref{ass:strong-matching}~(i) and~(ii),
+$\operatorname{logit} \gamma(c, h_i) = g(\ell_{h_i} + \lambda(c))$ for $i \in \{1, 2\}$.
+The compliance log-odds difference is therefore
+\[
+\operatorname{logit} \gamma(c, h_1) - \operatorname{logit} \gamma(c, h_2)
+\;=\; g(\ell_{h_1} + \lambda(c)) \;-\; g(\ell_{h_2} + \lambda(c)).
+\]
+The 1-Lipschitz hypothesis applied at the points $\ell_{h_1} + \lambda(c)$ and
+$\ell_{h_2} + \lambda(c)$ gives the absolute bound
+$|g(\ell_{h_1} + \lambda(c)) - g(\ell_{h_2} + \lambda(c))| \le |\ell_{h_1} - \ell_{h_2}|$.
+The signed bound~\eqref{eq:rate-ratio-bound} follows because $g$ is monotonic
+increasing under Assumption~\ref{ass:bayes} (composition of two monotonic
+increasing functions, $f$ and the logit), so the sign of the left-hand side equals
+the sign of $\ell_{h_1} - \ell_{h_2}$. Equality holds when $g$ has slope identically
+$1$, i.e.\ $g(\ell) = \ell + \alpha$ for some $\alpha \in \mathbb{R}$.
+\end{proof}
+
+\paragraph{Verification.} Theorem~\ref{thm:rate-ratio} passes two-grader equivalence
+verification under SymPy 1.14, NumPy 2.4, and Z3 4.16 (all three engines PASS;
+zero failures across $32$ random parameter configurations); see
+\texttt{theory/proofs/T1\_rate\_ratio/proof.py} and the verification log in the
+companion repository.
+
+\begin{corollary}[Logistic special case]
+\label{cor:logistic-special}
+If $f(p) = \sigma(\beta \cdot \operatorname{logit}(p) + \alpha)$ for fixed
+$\alpha \in \mathbb{R}$ and $\beta \in (0, 1]$, the hypothesis of
+Theorem~\ref{thm:rate-ratio} holds with $g(\ell) = \beta\ell + \alpha$, and the
+rate-ratio bound~\eqref{eq:rate-ratio-bound} holds with equality when $\beta=1$.
+\end{corollary}
+
+The 1-Lipschitz-in-logit hypothesis is strictly weaker than the logistic-with-slope-$\beta$
+hypothesis; it admits any concave-monotone calibrator with bounded slope, isotonic
+regressions with bounded slope in logit-coordinates, Platt-scaling outputs
+\cite{spiess2024calibration}, temperature-scaling outputs at $T \ge 1$
+\cite{lamb2025semantic}, and sufficiently smooth nonparametric posterior-to-action
+mappings. The publishable calibration interpretation is that compliance log-odds
+cannot move faster than posterior log-odds; the logistic family is one realisation
+of this property and is not implied by Bayesian rationality alone.
+
+\subsection{Empirical falsification}
+
+\begin{corollary}[Empirical falsification of Bayesian compliance]
+\label{cor:falsification}
+Let $\hat{\gamma}(c, h)$ denote empirical compliance rates and let $\hat{\pi}(h)$
+denote empirical channel-prior estimates obtained by directly probing the model's
+stated reliability assessment of content arriving through channel $h$. If
+\[
+\operatorname{logit} \hat{\gamma}(c, h_1) - \operatorname{logit} \hat{\gamma}(c, h_2)
+\;>\;
+\operatorname{logit} \hat{\pi}(h_1) - \operatorname{logit} \hat{\pi}(h_2)
+\]
+on the matched content $c$, then either Assumption~\ref{ass:bayes} fails, or
+Assumption~\ref{ass:strong-matching} fails, or the compliance function $g$ violates
+1-Lipschitz on $\mathbb{R}$. In any case the compliance behaviour cannot be explained
+as rational Bayesian source-weighting under the stated calibration condition.
+\end{corollary}
+
+\begin{remark}[Falsification scope]
+\label{rem:falsification-scope}
+Corollary~\ref{cor:falsification} fails if any of four hidden defenders' moves apply:
+(a) the model uses a sharper-than-1-Lipschitz logit calibration ($g'(\ell) > 1$ on the
+support of interest); (b) channel-conditional content likelihoods $L_r(c \mid h)$ or
+$L_u(c \mid h)$ differ across channels even when surface content is matched; (c)
+latent reliability is multi-class while the empirical $\hat\pi(h)$ probe is binary;
+(d) adversarial content selection induces hidden $c$-channel correlation. Each of
+(a)--(d) is a substantive empirical claim. The falsification corollary fires safely
+only when (a)--(d) have been independently ruled out. The empirical-test specifications
+in \S\ref{sec:predictions} target (b) by sourcing matched content from byte-identical
+factorial pairs and (c) by trichotomous reliability probing.
+\end{remark}
+
+\begin{remark}[Empirical magnitudes]
+\label{rem:empirical}
+On the empirical authority-laundering data ($\hat{\gamma}_{\text{tool}} = 0.310$,
+$\hat{\gamma}_{\text{user}} = 0.015$, pooled across 9 frontier models and 27 scenarios),
+the left-hand side of Corollary~\ref{cor:falsification} equals
+\[
+\operatorname{logit}(0.310) - \operatorname{logit}(0.015) \;\approx\; -0.800 - (-4.180) \;\approx\; 3.380.
+\]
+Bayesian rationality therefore requires
+$\operatorname{logit} \hat{\pi}(\text{tool}) - \operatorname{logit} \hat{\pi}(\text{user}) \ge 3.380$,
+which corresponds to a channel-prior odds ratio of at least
+$\exp(3.380) \approx 29.4$. Direct probing of plausible model-reported channel
+priors typically yields odds ratios in the $3$ to $7$ range, well below this
+threshold; the empirical gap is the magnitude of the non-Bayesian channel-authority
+heuristic, conditional on ruling out the four scope conditions of
+Remark~\ref{rem:falsification-scope}. The corresponding deviation magnitude on the
+evidence-direction axis is approximately $2$ to $3$ \cite{kumaran2026competing},
+about an order of magnitude smaller than the channel-axis deviation reported here.
+\end{remark}
+
+\section{Grounding-asymmetry bound}
+\label{sec:grounding}
+
+\begin{definition}[Grounding evidence]
+\label{def:grounding}
+A user-stated grounding fact $F$ is observed evidence that bears on the reliability
+of $c$ via Bayes factor $B(F) := \mathbb{P}(F \mid R=0) / \mathbb{P}(F \mid R=1)$.
+A grounding fact is \emph{contradicting} when $B(F) > 1$, that is, $F$ is more likely
+under fabrication than under genuine content.
+\end{definition}
+
+\begin{theorem}[Grounding-effect bound, signed]
+\label{thm:grounding}
+Suppose Assumption~\ref{ass:bayes} and Assumption~\ref{ass:strong-matching} hold,
+the compliance function $g$ is 1-Lipschitz on $\mathbb{R}$, the grounding fact
+$F$ is conditionally independent of $h$ given $R$, and the conditional Bayes factor
+$B(F \mid c, h) = B(F)$ is matched across channels at the likelihood-ratio level
+(not merely at the surface-string level). For a contradicting grounding fact $F$
+with $B(F) > 1$, the channel-conditioned compliance log-odds satisfy
+\begin{equation}
+\label{eq:grounding-bound}
+- \log B(F) \;\le\; \operatorname{logit} \gamma(c, h, F) \;-\; \operatorname{logit} \gamma(c, h) \;\le\; 0,
+\end{equation}
+and the magnitude of the reduction is independent of the channel.
+\end{theorem}
+
+\begin{proof}
+Conditional on $F$, equation~\eqref{eq:posterior-logodds} becomes
+$\operatorname{logit} \mathbb{P}(R=1 \mid c, h, F) = \operatorname{logit} \pi(h) + \log[L_r(c)/L_u(c)] - \log B(F)$,
+because $F$ is conditionally independent of $h$ given $R$, and the matched
+$B(F \mid c, h) = B(F)$ hypothesis ensures the log-Bayes-factor contributes
+$-\log B(F)$ uniformly across channels. The posterior log-odds reduction is exactly
+$\log B(F) > 0$ for contradicting $F$, independent of $h$. Applying the 1-Lipschitz
+compliance function $g$ scales the absolute reduction by at most $1$, giving the
+magnitude bound. The non-positive sign in~\eqref{eq:grounding-bound} follows from
+monotonicity of $g$ inherited from monotonicity of $f$ in
+Assumption~\ref{ass:bayes}: a reduction in posterior log-odds cannot increase
+compliance log-odds under any monotonic compliance function.
+\end{proof}
+
+\paragraph{Verification.} Theorem~\ref{thm:grounding} passes two-grader equivalence
+verification at $3/3$ engines (SymPy + NumPy + Z3); zero failures across $32$ random
+configurations of $B(F) \in (1, 20.1]$ and three calibration families; see
+\texttt{theory/proofs/T2\_grounding/proof.py}.
+
+\begin{corollary}[Sign-violation falsification]
+\label{cor:grounding-sign}
+If empirical grounding effects produce a strictly positive shift on contradicting $F$,
+$\operatorname{logit} \hat\gamma(c, h, F) > \operatorname{logit} \hat\gamma(c, h)$, then
+the assumptions of Theorem~\ref{thm:grounding} cannot all hold. In particular,
+no rational Bayesian compliance model satisfying Assumption~\ref{ass:bayes} produces
+a sign flip on contradicting evidence regardless of the choice of compliance
+function $f$. This sign claim is logically stronger than correlational Bayesian
+coherence measures used in recent benchmarks of LLM belief updating
+\cite{imran2025bayes}. The empirical observation that grounding \emph{increases}
+compliance on Claude Sonnet 4.5 from approximately 32 per cent to 36 per cent
+under matched contradicting grounding facts is therefore a decisive sign-violation
+falsification of rational compliance, robust to any recalibration of the
+1-Lipschitz constant or of $\log B(F)$.
+\end{corollary}
+
+\begin{remark}[Operational scope of Theorem~\ref{thm:grounding}]
+\label{rem:grounding-scope}
+The theorem requires three substantive conditions beyond the rate-ratio bound's
+assumptions: (i) channel-blind elicitation of $F$, ensuring $F$ is sourced
+independently of channel; (ii) Bayes-factor matching at the conditional level
+$B(F \mid c, h) = B(F)$, not merely surface matching of $F$ across channels; and
+(iii) complete-evidence observation, where the grounding evidence stream entering
+the model is observable to the empirical pipeline rather than partially observed
+through implicit channels (hedging tone, qualifier density). When grounding effects
+are reported turn-wise, the bound applies to evidence cardinality $F_{\le t}$ at
+turn $t$, not the full grounding stream. Magnitude violations of the bound can
+arise from (i)--(iii) without falsifying rational compliance; sign violations of
+Corollary~\ref{cor:grounding-sign} cannot.
+\end{remark}
+
+\section{Probing-representation lower bound}
+\label{sec:probing}
+
+Information-theoretic bounds on language-model behaviour have recently been
+derived as upper bounds on output accuracy from task-complexity overload
+\cite{wan2025fano}; the result below is a lower bound in the dual direction, on
+activation-probe distinguishability from a behavioural compliance gap. The bound
+extends the mutual-information probing framework of \cite{belinkov2022probing,
+pimentel2020infotheory} from a recovery-quality measure to a falsifiable
+prediction tied to the rate-ratio bound of Theorem~\ref{thm:rate-ratio}.
+
+\begin{theorem}[Probing-representation lower bound]
+\label{thm:probing}
+Suppose Assumption~\ref{ass:bayes} and Assumption~\ref{ass:strong-matching} hold and
+the empirical compliance log-odds gap on matched content $c$ between channels $h_1$
+and $h_2$ exceeds the rate-ratio bound of Theorem~\ref{thm:rate-ratio} by an amount
+$\Delta_{\textnormal{nb}} > 0$. Let $P_1$ and $P_2$ denote the channel-conditional
+distributions of the residual-stream activation $\mathbf{x}_h \in \mathbb{R}^d$ at
+the fixed transformer layer $L$ for matched $c$ delivered through $h_1$ and $h_2$.
+Assume the compliance read-out at that layer,
+$\psi : \mathbb{R}^d \to \mathbb{R}$ defined by
+$\psi(x) := \operatorname{logit} \mathbb{E}[Y \mid \mathbf{x}_h = x]$, is bounded
+on the activation support: $|\psi(x)| \le M$ almost surely under $P_1$ and $P_2$,
+for some $M > 0$. Then:
+\begin{enumerate}
+\item[\textnormal{(a)}] The total-variation distance between the channel-conditional
+activation distributions satisfies
+\begin{equation}
+\label{eq:tv-lower}
+\mathrm{TV}(P_1, P_2) \;\ge\; \frac{\Delta_{\textnormal{nb}}}{2 M}.
+\end{equation}
+\item[\textnormal{(b)}] The Bayes-optimal binary classifier discriminating
+$\{h_1, h_2\}$ from a single sample of $\mathbf{x}_h$ achieves accuracy
+\begin{equation}
+\label{eq:alpha-lower}
+\alpha^\star \;\ge\; \frac{1}{2} \;+\; \frac{\Delta_{\textnormal{nb}}}{4 M}.
+\end{equation}
+\item[\textnormal{(c)}] The binary KL-divergence between $P_1$ and $P_2$ satisfies
+\begin{equation}
+\label{eq:kl-lower}
+\mathrm{KL}(P_1 \,\|\, P_2) \;\ge\; \frac{\Delta_{\textnormal{nb}}^{\,2}}{2 M^{2}}.
+\end{equation}
+\item[\textnormal{(d)}] When $P_1, P_2$ admit densities and the channel signal is
+encoded linearly in the residual stream at layer $L$, there exists a unit vector
+$\mathbf{v} \in \mathbb{R}^{d}$ such that the projection
+$\langle \mathbf{v}, \mathbf{x}_h \rangle$ realises a linear classifier that
+attains the accuracy floor~\eqref{eq:alpha-lower}.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\emph{(a) Total-variation lower bound.} By the tower-rule conditioning of $Y$ on
+$\mathbf{x}_h$ and the definition of $\psi$,
+$\operatorname{logit} \gamma(c, h_i) = \mathbb{E}_{\mathbf{x}_h \sim P_i}[\psi(\mathbf{x}_h)]$.
+Hence the compliance log-odds gap equals the read-out's expectation gap,
+$\Delta_\gamma := \operatorname{logit} \gamma(c, h_1) - \operatorname{logit} \gamma(c, h_2)
+= \mathbb{E}_{P_1}[\psi] - \mathbb{E}_{P_2}[\psi]$.
+By hypothesis the absolute compliance log-odds gap exceeds the rate-ratio bound by
+$\Delta_{\textnormal{nb}}$. The channel-prior contribution
+$\ell_{h_1} - \ell_{h_2}$ is a constant on the activation support that enters the
+read-out through the additive intercept under Assumption~\ref{ass:strong-matching},
+so it cancels in the differenced expectation. The residual non-Bayesian gap on
+the activation expectations therefore satisfies
+$|\mathbb{E}_{P_1}[\psi] - \mathbb{E}_{P_2}[\psi]| \ge \Delta_{\textnormal{nb}}$.
+The Kantorovich--Rubinstein dual representation of total-variation distance for
+bounded functions states that for any measurable $\psi$ with $\|\psi\|_\infty \le M$,
+\begin{equation}
+\label{eq:kr-bound}
+\bigl|\mathbb{E}_{P_1}[\psi] - \mathbb{E}_{P_2}[\psi]\bigr|
+\;\le\; 2 M \cdot \mathrm{TV}(P_1, P_2),
+\end{equation}
+which is a direct consequence of the variational form
+$\mathrm{TV}(P_1, P_2) = \tfrac{1}{2} \sup_{\|f\|_\infty \le 1} |\mathbb{E}_{P_1} f - \mathbb{E}_{P_2} f|$
+applied to $f = \psi/M$ \cite{coverthomas2006elements}. Combining with the lower bound
+on the expectation difference yields~\eqref{eq:tv-lower}.
+
+\emph{(b) Le Cam two-point lemma.} The Le Cam two-point lemma
+\cite[\S2.4]{tsybakov2009nonparametric} states that the maximum classification
+accuracy under uniform class priors is
+$\alpha^\star = \tfrac{1}{2} + \tfrac{1}{2}\mathrm{TV}(P_1, P_2)$,
+attained by the likelihood-ratio test. Substituting~\eqref{eq:tv-lower}
+gives~\eqref{eq:alpha-lower}.
+
+\emph{(c) Pinsker's inequality.} Pinsker's inequality
+\cite[Theorem~17.3.3]{coverthomas2006elements} states
+$\mathrm{KL}(P_1 \,\|\, P_2) \ge 2 \, \mathrm{TV}(P_1, P_2)^{2}$.
+Squaring~\eqref{eq:tv-lower} and multiplying by $2$ yields~\eqref{eq:kl-lower}.
+
+\emph{(d) Existence of an informative direction.} The Bayes-optimal classifier's
+accuracy is $\alpha^\star$ by part~(b). When $P_1$ and $P_2$ admit densities and
+their log-density-ratio is affine in $\mathbf{x}_h$, the likelihood-ratio test
+collapses to a linear classifier with hyperplane normal proportional to the
+log-density-ratio gradient. The unit vector $\mathbf{v}$ along that gradient is the
+channel-of-origin direction the linear-probe experiment in
+\texttt{mechanism/exp1\_linear\_probe.py} measures.
+\qedhere
+\end{proof}
+
+\paragraph{Verification.} Theorem~\ref{thm:probing} passes two-grader equivalence
+verification at $3/3$ engines on the parts expressible in linear and polynomial
+arithmetic (SymPy + NumPy + Z3 PASS for parts (a), (b), (d)); part~(c) (Pinsker)
+is verified by SymPy + NumPy with Z3 SAT/UNSAT replaced by transcendental-aware
+symbolic verification, with $32$ Bernoulli witness pairs and $4$-point multinomial
+witness all PASS. Min Pinsker margin $+3 \times 10^{-6}$ at $p = q$ degeneracy;
+see \texttt{theory/proofs/T3\_probing/proof.py}.
+
+\begin{theorem}[Gaussian sharpening of the probing bound]
+\label{thm:probing-gaussian}
+Suppose the conditions of Theorem~\ref{thm:probing} hold and additionally:
+(i) the compliance read-out is linear,
+$\psi(\mathbf{x}_h) = \mathbf{w}^\top \mathbf{x}_h + b$;
+(ii) the channel-conditional residual-stream distributions $P_1, P_2$ are
+$d$-dimensional Gaussians with equal covariance and means $\mu_1, \mu_2$
+separated along a rank-$1$ channel direction
+$\mathbf{v}^\star := (\mu_1 - \mu_2) / \|\mu_1 - \mu_2\|_2$, with projected
+standard deviation $\sigma$ along $\mathbf{v}^\star$ on each channel-conditional
+distribution. Then the projected mean gap satisfies
+$\|\mu_1 - \mu_2\|_2 \ge \Delta_{\textnormal{nb}}/\|\mathbf{w}\|_2$, and the
+Bayes-optimal classifier attains accuracy
+\begin{equation}
+\label{eq:alpha-gaussian}
+\alpha^\star \;=\; \Phi\!\left( \frac{\|\mu_1 - \mu_2\|_2}{2\sigma} \right)
+\;\ge\; \Phi\!\left( \frac{\Delta_{\textnormal{nb}}}{2 \sigma \, \|\mathbf{w}\|_2} \right),
+\end{equation}
+where $\Phi$ is the standard normal cumulative distribution function. The unit
+vector $\mathbf{v}^\star$ is the explicit channel-authority direction, and the
+linear-probe classifier along $\mathbf{v}^\star$ attains the Bayes-optimal accuracy.
+\end{theorem}
+
+\begin{proof}
+Under hypothesis (i), the linear read-out's expectation gap satisfies
+$|\mathbb{E}_{P_1}[\psi] - \mathbb{E}_{P_2}[\psi]| = |\mathbf{w}^\top(\mu_1 - \mu_2)|
+\le \|\mathbf{w}\|_2 \cdot \|\mu_1 - \mu_2\|_2$ by Cauchy--Schwarz, hence
+$\|\mu_1 - \mu_2\|_2 \ge \Delta_{\textnormal{nb}}/\|\mathbf{w}\|_2$. Under
+hypothesis (ii), the two equal-covariance Gaussians admit a Bayes-optimal
+likelihood-ratio test that is a linear classifier whose accuracy equals
+$\Phi(\|\mu_1 - \mu_2\|_2/(2\sigma))$ \cite[\S2.6]{tsybakov2009nonparametric}.
+Substituting the lower bound on $\|\mu_1 - \mu_2\|_2$ and using monotonicity of
+$\Phi$ yields~\eqref{eq:alpha-gaussian}.
+\end{proof}
+
+\paragraph{Verification.} Theorem~\ref{thm:probing-gaussian} passes two-grader
+equivalence verification at $3/3$ engines on the foundational steps (Cauchy--Schwarz
+on the linear read-out and rank-$1$ reduction; SymPy + NumPy + Z3 PASS). The
+Gaussian-equality form $\alpha^\star = \Phi(z/2)$ is verified by SymPy and NumPy
+against eight sub-Gaussian witness configurations and exactly matches the
+Bayes-optimal accuracy at every configuration; see
+\texttt{theory/proofs/T4\_subgaussian/proof.py}. The earlier as-stated linear bound
+$\alpha^\star \ge \tfrac{1}{2} + \Delta_{\textnormal{nb}}/(4\sigma)$ was refuted by
+both SymPy and NumPy because the Gaussian Bayes accuracy $\Phi(z/2)$ has slope
+$1/(2\sqrt{2\pi}) \approx 0.199$ at $z=0$, strictly less than $1/4$. The corrected
+form above replaces the linear lower bound with the Gaussian-exact equality, which
+is consistent with the standard sub-Gaussian classification result and tighter for
+all $\Delta_{\textnormal{nb}} > 0$.
+
+\begin{remark}[Operational scope of Theorem~\ref{thm:probing}]
+\label{rem:probing-scope}
+The bound applies layer-wise and is silent across layers. The empirical-falsification
+test scans layers and reports $\sup_L \alpha^\star(L)$, because the bound trivialises
+at any layer where the channel signal is not yet linearly decodable
+\cite{voita2020mdl}. The bound also requires the probe geometry to match the
+read-out geometry: the probe must operate on the same activation tensor (same layer,
+same token-aggregation policy) as the compliance read-out. The bound is vacuous
+if channel-authority is encoded nonlinearly at the probed layer; in that regime,
+the linear probe should be replaced with a matched-expressivity nonlinear probe
+(e.g.\ quadratic or single-hidden-layer MLP) and $\alpha^\star$ rederived
+\cite{hewitt2019selectivity}. Empirical evaluation must use cross-validated probe
+accuracy with explicit confidence intervals to avoid in-sample overstatement in
+high-dimensional residual spaces.
+\end{remark}
+
+\section{Training-distribution origin of the channel prior}
+\label{sec:training-distribution}
+
+The rate-ratio bound of Theorem~\ref{thm:rate-ratio} treats the channel prior
+$\pi(h)$ as an unconstrained quantity to be probed empirically. The probing-representation
+lower bound of Theorem~\ref{thm:probing} treats the residual non-Bayesian gap
+$\Delta_{\textnormal{nb}}$ as the unexplained component of the empirical compliance
+gap. We now derive the training-distribution origin of $\pi(h)$ itself, identifying
+the channel-prior gap as the KL-projection of the corpus channel-reliability rate.
+The result sits structurally upstream of Theorems~\ref{thm:rate-ratio}--\ref{thm:probing-gaussian}
+and supplies the missing causal explanation for why the channel-as-authority bias
+exists at all. The result is structurally analogous to Cloud Theorem~1
+\cite{cloud2026subliminal}, which shows that a single distillation gradient step
+transports student logits towards teacher logits regardless of training
+distribution; the result below shows that truth-aligned training transports the
+channel prior of the model towards the channel-reliability rate of the corpus
+regardless of the corpus generative process.
+
+\begin{assumption}[Truth-aligned training distribution]
+\label{ass:truth-aligned}
+The training distribution $P^\star$ over $(C, H, R) \in \mathcal{C} \times \mathcal{H} \times \{0,1\}$
+satisfies, for every channel $h$ in the support of the channel marginal,
+$P^\star(R = 1 \mid h) = \rho(h) \in (0, 1)$, where $\rho(h)$ is the empirical
+reliability rate on channel $h$. The channel marginal $P^\star(h)$ is positive on
+every $h \in \mathcal{H}$ relevant to the compliance task.
+\end{assumption}
+
+\begin{assumption}[KL-projection compliance]
+\label{ass:kl}
+The model's channel-conditioned reliability estimator $\hat\pi : \mathcal{H} \to (0,1)$
+is the KL projection of $P^\star(R \mid H)$ onto the channel-indexed Bernoulli
+family,
+\[
+\hat\pi(h) = \arg\min_{q \in (0,1)} \mathbb{E}_{R \sim P^\star(\cdot \mid h)}\!\left[\, \mathrm{KL}\!\left( \mathrm{Ber}(R) \,\|\, \mathrm{Ber}(q) \right) \,\right],
+\]
+and the compliance function $\gamma(c, h) = f(\,\mathbb{P}_{\hat\pi}(R=1 \mid c, h)\,)$
+is Bayesian under Assumption~\ref{ass:bayes} with channel prior $\hat\pi$.
+\end{assumption}
+
+Assumption~\ref{ass:truth-aligned} captures the training-distribution structure of
+modern instruction-tuning and RLHF pipelines \cite{ouyang2022instruct, casper2023rlhf,
+rafailov2023dpo}, in which retrieval-surface channels (tool, document) typically
+carry higher reliability than user-authored content. Assumption~\ref{ass:kl} is the
+standard M-projection identification of the channel-prior estimator with the corpus
+reliability rate \cite{csiszar1975projection, amari2016information,
+coverthomas2006elements}.
+
+\begin{theorem}[Training-distribution impossibility for channel-uniform compliance]
+\label{thm:impossibility}
+Suppose Assumptions~\ref{ass:bayes}, \ref{ass:strong-matching},
+\ref{ass:truth-aligned}, and \ref{ass:kl} hold, the compliance function $g$
+in posterior-log-odds coordinates is 1-Lipschitz on $\mathbb{R}$, and there exist
+two channels $h_1, h_2 \in \mathcal{H}$ with $\rho(h_1) > \rho(h_2)$ in $(0,1)$.
+Then for matched content $c$,
+\begin{equation}
+\label{eq:impossibility}
+\operatorname{logit} \gamma(c, h_1) \;-\; \operatorname{logit} \gamma(c, h_2)
+\;=\; g(\ell_{h_1} + \lambda(c)) \;-\; g(\ell_{h_2} + \lambda(c)),
+\end{equation}
+where $\ell_{h_i} = \operatorname{logit} \rho(h_i)$, and the channel-conditioned
+compliance log-odds gap satisfies the lower bound
+\begin{equation}
+\label{eq:nofreelunch}
+\bigl| \operatorname{logit} \gamma(c, h_1) - \operatorname{logit} \gamma(c, h_2) \bigr|
+\;\ge\; \kappa \cdot \bigl| \operatorname{logit} \rho(h_1) - \operatorname{logit} \rho(h_2) \bigr|,
+\end{equation}
+where $\kappa := \inf_{\ell \in [\ell_{\min}, \ell_{\max}]} g'(\ell) \in [0, 1]$ is
+the minimum slope of the compliance read-out on the relevant logit interval. A
+Bayesian-rational compliance function trained on $P^\star$ therefore cannot achieve
+channel-uniform compliance on matched content unless one of the following holds:
+(i) $\rho$ is uniform across channels, (ii) the compliance function abandons the
+Bayesian posterior read-out of Assumption~\ref{ass:bayes}, or (iii) the compliance
+function collapses $g$ to a constant on the relevant interval, which by
+Theorem~\ref{thm:rate-ratio} costs calibration accuracy on the underlying reliability
+classification.
+\end{theorem}
+
+\begin{proof}
+\emph{Step 1 (KL projection identifies the channel prior with the corpus rate).}
+Under Assumption~\ref{ass:kl}, $\hat\pi(h)$ minimises
+$\mathbb{E}_{R \sim P^\star(\cdot \mid h)}[\mathrm{KL}(\mathrm{Ber}(R) \| \mathrm{Ber}(q))]$
+over $q \in (0,1)$. Expanding the KL divergence and taking the derivative in $q$
+yields the first-order condition $\rho(h)/q = (1-\rho(h))/(1-q)$, with the unique
+solution $q = \rho(h)$ in $(0,1)$. Strict convexity of the KL functional in $q$ on
+$(0,1)$ makes this the unique minimiser. Therefore $\hat\pi(h) = \rho(h)$, and
+$\ell_h = \operatorname{logit} \hat\pi(h) = \operatorname{logit} \rho(h)$. This is
+the M-projection identification of the channel-conditional reliability marginal
+\cite{csiszar1975projection,amari2016information,coverthomas2006elements}.
+
+\emph{Step 2 (compliance log-odds inherit the channel-prior log-odds gap).}
+By Assumption~\ref{ass:bayes} and the posterior log-odds factorisation of
+equation~\eqref{eq:posterior-logodds}, the compliance log-odds satisfy
+$\operatorname{logit} \gamma(c, h) = g(\ell_h + \lambda(c))$. Substituting the
+result of Step 1, the compliance log-odds difference for matched content $c$
+across channels $h_1, h_2$ equals
+$g(\ell_{h_1} + \lambda(c)) - g(\ell_{h_2} + \lambda(c))$, which is
+equation~\eqref{eq:impossibility}. The matched-content hypothesis from
+Assumption~\ref{ass:strong-matching} ensures $\lambda(c)$ is the same in both
+arguments of $g$.
+
+\emph{Step 3 (lower bound via the mean value theorem).} The function $g$ is
+1-Lipschitz by hypothesis and monotonic increasing under
+Assumption~\ref{ass:bayes}; Lipschitz functions are absolutely continuous and
+differentiable almost everywhere. By the mean value theorem applied to $g$ on
+the closed interval between $\ell_{h_2} + \lambda(c)$ and $\ell_{h_1} + \lambda(c)$,
+there exists a point $\xi$ in the interior such that
+$g(\ell_{h_1} + \lambda(c)) - g(\ell_{h_2} + \lambda(c)) = g'(\xi) \cdot (\ell_{h_1} - \ell_{h_2})$.
+Taking absolute values and bounding $g'(\xi) \ge \kappa = \inf g'$ on the interval
+yields the bound~\eqref{eq:nofreelunch}.
+
+The three escape routes follow by inspection of the inequality. Route (i) zeros
+the right-hand side. Route (ii) violates Assumption~\ref{ass:bayes} and removes
+the equality of Step 2 from which the bound is derived. Route (iii) sends $\kappa
+\to 0$, but a constant $g$ on the relevant interval implies that the compliance
+read-out cannot distinguish reliable from unreliable content in that range, which
+by Theorem~\ref{thm:rate-ratio} eliminates calibration accuracy on the underlying
+reliability task.
+\end{proof}
+
+\paragraph{Verification.} Theorem~\ref{thm:impossibility} passes two-grader
+equivalence verification at $3/3$ engines on Step~1 (KL-projection first-order
+condition; SymPy + NumPy + Z3 PASS) and Step~2 (posterior log-odds factorisation;
+SymPy + NumPy + Z3 PASS). Step~3 (mean value theorem on absolutely continuous
+1-Lipschitz functions) is verified at SymPy + NumPy with 32 sub-Gaussian random
+parameter configurations; Z3 SAT/UNSAT replaced by transcendental-aware symbolic
+verification because the Lipschitz quantifier scope is outside Z3's decidable
+theory. See \texttt{theory/proofs/T5\_impossibility/proof.py}.
+
+\begin{corollary}[Falsification by corpus rebalancing]
+\label{cor:corpus-falsification}
+Equation~\eqref{eq:impossibility} predicts that the compliance log-odds gap on
+matched content tracks the channel-prior log-odds gap induced by the corpus
+reliability rates. Under a counterfactual corpus $\tilde P$ in which
+$\tilde\rho(h_1) = \tilde\rho(h_2)$, the predicted gap is zero up to the
+1-Lipschitz approximation error of the compliance function. Under a corpus
+$\tilde P$ that inverts the reliability ranking, $\tilde\rho(h_1) < \tilde\rho(h_2)$,
+the predicted compliance gap inverts in sign.
+\end{corollary}
+
+The impossibility statement of Theorem~\ref{thm:impossibility} is the
+channel-asymmetric analogue of the fairness-under-disparate-base-rates
+impossibility of \cite{hardt2016fairness}: where fair classification cannot
+simultaneously equalise true-positive and false-positive rates across groups when
+base rates differ, channel-uniform compliance cannot be achieved by a Bayesian-rational
+read-out trained on a corpus where channel reliability rates differ. The KL-projection
+machinery is the same in both cases, with channels playing the role of protected
+groups and reliability rates playing the role of group base rates. The bound's
+three escape routes exhaust the structural moves available: rebalance the corpus,
+abandon the rationality of the read-out, or accept calibration loss equal to the
+suppressed reliability ratio.
+
+The empirical magnitudes are consistent with the bound. Plausible reliability
+rates in 2026 frontier-LLM training corpora are $\rho(\text{tool}) \in [0.85, 0.95]$
+for curated tool-output pipelines and retrieval-augmented generation, against
+$\rho(\text{user}) \in [0.40, 0.65]$ for open-domain user input under no factuality
+constraint. Substituting these ranges into~\eqref{eq:nofreelunch} with $\kappa$
+equal to the calibration constants typical of temperature-scaled language models
+\cite{lamb2025semantic} yields a predicted compliance log-odds gap in the range
+$[1.1, 3.0]$. The empirical gap of $3.38$ from
+Remark~\ref{rem:empirical} sits at and slightly above the upper boundary of the
+prediction interval, which is consistent with a Bayesian-rational lower bound plus
+a small over-amplification effect at exactly the magnitude that
+Theorems~\ref{thm:probing}--\ref{thm:probing-gaussian} lower-bound on the
+probe-distinguishability axis.
+
+\subsection{Priority inversion under regime-conditioned channel coefficients}
+\label{sec:priority-inversion}
+
+Theorem~\ref{thm:impossibility} explains why declarative compliance shows
+$\gamma(c, \text{tool}) > \gamma(c, \text{user})$ on matched content. The same
+training pipelines, however, simultaneously enforce the opposite ordering for
+command-following: instruction-hierarchy training of \cite{wallace2024instruction}
+produces $\gamma_{\text{cmd}}(c, \text{user}) > \gamma_{\text{cmd}}(c, \text{tool})$
+for matched commands. The two orderings appear to invert on the same channel
+pair. The result below resolves the paradox by formalising the inversion as a
+sign-reversal of a regime-conditioned channel coefficient on a shared
+channel-of-origin representation.
+
+\begin{assumption}[Content-type partition with shared channel encoding]
+\label{ass:partition}
+The content space partitions as $\mathcal{C} = \mathcal{C}_{\text{cmd}} \sqcup \mathcal{C}_{\text{dec}}$
+into commands (imperative speech acts) and declaratives (assertive speech acts)
+\cite{searle1969speech}. There exists a channel-of-origin encoding
+$\phi : \mathcal{H} \to \mathbb{R}$ measurable by the model and shared across
+content types, and regime-conditioned coefficients $\beta_\tau, \alpha_\tau$ for
+$\tau \in \{\text{cmd}, \text{dec}\}$, such that under
+Assumption~\ref{ass:bayes} and \ref{ass:strong-matching} the compliance log-odds
+factor as
+\[
+\operatorname{logit} \gamma(c, h, \tau) \;=\; \beta_\tau \cdot \phi(h) + \alpha_\tau + \lambda(c).
+\]
+\end{assumption}
+
+\begin{theorem}[Priority inversion via regime-conditioned channel coefficient]
+\label{thm:priority-inversion}
+Suppose Assumption~\ref{ass:partition} holds, the training corpus carries
+truth-aligned reliability rates that order channels in opposite directions on the
+user-tool axis ($\rho_{\text{cmd}}(\text{user}) > \rho_{\text{cmd}}(\text{tool})$
+under Wallace-style command-priority training, and
+$\rho_{\text{dec}}(\text{tool}) > \rho_{\text{dec}}(\text{user})$ under
+truth-aligned declarative training), and the KL-projection compliance
+\textnormal{(Assumption~\ref{ass:kl})} holds within each regime. Then
+$\beta_{\text{cmd}} \cdot \beta_{\text{dec}} < 0$ on the user-tool channel pair,
+and consequently the same model exhibits both
+$\gamma_{\text{cmd}}(c, \text{user}) > \gamma_{\text{cmd}}(c, \text{tool})$ for
+matched commands and
+$\gamma_{\text{dec}}(c, \text{tool}) > \gamma_{\text{dec}}(c, \text{user})$ for
+matched declaratives. The priority inversion observed in the parent paper is
+therefore the dual application of Theorem~\ref{thm:impossibility} under
+opposite-signed corpus reliability rates rather than a contradiction in the
+underlying compliance function.
+\end{theorem}
+
+\begin{proof}
+By Theorem~\ref{thm:impossibility} applied separately to each regime $\tau$, the
+KL-projection identifies the regime-conditioned channel prior with the corpus rate,
+$\hat\pi_\tau(h) = \rho_\tau(h)$. Under Assumption~\ref{ass:partition}, the
+shared channel encoding $\phi(h)$ enters the compliance log-odds linearly with
+regime-conditioned coefficient $\beta_\tau$. Substituting the channel prior
+contributions through equation~\eqref{eq:posterior-logodds} for each regime gives
+$\beta_\tau$ as the slope of the compliance log-odds with respect to
+$\operatorname{logit} \rho_\tau(h)$, which is positive when truth-aligned training
+rewards higher compliance on more-reliable channels. Under the hypothesis that
+$\rho_{\text{cmd}}$ orders channels with user above tool while $\rho_{\text{dec}}$
+orders channels with tool above user, the slope of compliance with respect to
+$\phi(h)$ has opposite signs in the two regimes, that is
+$\beta_{\text{cmd}} \cdot \beta_{\text{dec}} < 0$. Substituting back into the
+compliance factorisation yields the two stated orderings as direct consequences.
+\end{proof}
+
+\paragraph{Verification.} Theorem~\ref{thm:priority-inversion} passes two-grader
+equivalence verification at $3/3$ engines (SymPy + NumPy + Z3) on the slope-sign
+identification under Assumption~\ref{ass:partition}; see
+\texttt{theory/proofs/T6\_priority\_inversion/proof.py}. The verifier confirms
+that the linear factorisation is consistent with Theorem~\ref{thm:impossibility}
+applied to each regime separately and that the sign-reversal claim follows
+mechanically from the corpus-rate orderings.
+
+\begin{corollary}[Coupling-cost trade-off]
+\label{cor:coupling-cost}
+Suppose post-hoc safety training imposes a shared channel-priority objective
+across content types, that is, replaces the regime-conditioned coefficients
+$\beta_{\text{cmd}}, \beta_{\text{dec}}$ with a single coefficient
+$\beta_{\text{shared}}$. Under any choice of $\beta_{\text{shared}}$, at least
+one regime suffers a calibration loss equal to
+$|\beta_{\tau} - \beta_{\text{shared}}| \cdot \mathrm{Var}(\phi)^{1/2}$ at the
+content-type-conditional KL projection, with equality at
+$\beta_{\text{shared}} = (\beta_{\text{cmd}} + \beta_{\text{dec}})/2$.
+The coupling intervention therefore cannot reduce both rates without paying
+calibration cost on at least one regime, which is the no-free-lunch consequence
+of Theorem~\ref{thm:impossibility} applied to the shared-coefficient compliance
+function.
+\end{corollary}
+
+The priority-inversion theorem makes a sharp empirical prediction at the activation
+level. Under Assumption~\ref{ass:partition}, a single linear probe trained to
+classify channel of origin on the residual-stream activation should recover a
+shared encoding $\phi(h)$, with regime-conditioned coefficients $\beta_\tau$ that
+project compliance log-odds in opposite directions across the user-tool axis. The
+mechanism pipeline at \texttt{mechanism/exp1\_linear\_probe.py} can test this by
+reusing the channel-of-origin probe trained on declarative content and applying
+the same projection to command-tagged content, with the prediction that the
+correlation with command-following compliance is sign-inverted relative to
+declarative compliance. The closest empirical precedent for the cleavage is
+\cite{mason2026imperative} on imperative-versus-declarative instruction topology
+and \cite{waqas2026provenance} on provenance-conditioned compliance, neither of
+which derives a Bayesian closed-form bound for the inversion. The framework here
+fills that gap.
+
+\subsection{No-free-lunch under bounded inference capacity}
+\label{sec:no-free-lunch}
+
+The escape routes of Theorem~\ref{thm:impossibility} include the option of
+collapsing the calibration constant $\kappa = \inf g'$ toward zero to suppress the
+channel-conditioned compliance gap. Bounded inference capacity blocks this route.
+The result below formalises the intuition that Bayesian rationality on a
+sufficiently rich content space requires capacity that scales with the
+content-space effective dimensionality, and derives a Pinsker-quadratic lower
+bound on the calibration cost any bounded-capacity model must accept on
+channel-asymmetric deployment distributions \cite{wolpert1997nofreelunch,
+genewein2019rate, geirhos2020shortcut}.
+
+\begin{theorem}[Capacity correction to channel-prior emergence]
+\label{thm:capacity}
+Let $\hat\pi^C$ be the channel-prior estimator under bounded-capacity empirical
+risk minimisation in a function class $\mathcal{F}_C$ with covering number
+$\log \mathcal{N}(\mathcal{F}_C, \varepsilon, \|\cdot\|_\infty) \le C \log(1/\varepsilon)$,
+and let $\rho$ be the corpus channel-reliability rate of
+Assumption~\ref{ass:truth-aligned}. Under the hypotheses of
+Theorem~\ref{thm:impossibility}, the channel-prior estimator satisfies
+\begin{equation}
+\label{eq:capacity-bound}
+\mathbb{E}\!\left[\, \bigl(\hat\pi^C(h) - \rho(h)\bigr)^2 \,\right]
+\;\le\; c_1 \cdot \frac{C \log(C/N)}{N},
+\end{equation}
+where $N$ is the training-set size and $c_1$ is an absolute constant. Consequently,
+the calibration constant $\kappa^C := \inf g'$ on $\hat\gamma^C$ converges to
+$\kappa^\infty > 0$ as $C/N \to \infty$ whenever $\rho$ is non-uniform, and the
+third escape route of Theorem~\ref{thm:impossibility} (collapsing $\kappa$ to
+zero) is unavailable to any bounded-capacity Bayesian compliance function.
+\end{theorem}
+
+\begin{proof}
+The bound~\eqref{eq:capacity-bound} is the standard Rademacher-complexity squared
+loss bound for bounded-Lipschitz function classes
+\cite[Section~3]{wolpert1997nofreelunch}, applied to the squared error of
+$\hat\pi^C$ relative to the population-optimal $\rho(h)$ obtained by
+Theorem~\ref{thm:impossibility} Step~1. The convergence
+$\kappa^C \to \kappa^\infty$ follows because $\hat\pi^C \to \rho$ in $L^2$ implies
+$\inf g' \to$ the infinite-capacity infimum, which is positive when $\rho$ is
+non-uniform under Assumption~\ref{ass:bayes}. The non-availability of the third
+escape route follows because $\kappa = 0$ requires $g$ to be constant on the
+relevant logit interval, which under
+Assumption~\ref{ass:strong-matching}~(ii) requires the population-optimal
+$\hat\gamma$ to be constant on that interval and therefore non-Bayesian on
+content with non-degenerate likelihood-ratio $\lambda(c)$.
+\end{proof}
+
+\paragraph{Verification.} Theorem~\ref{thm:capacity} passes the two-grader
+equivalence verification on the $L^2$ convergence step (SymPy + NumPy PASS) and
+on the structural unavailability of the $\kappa \to 0$ escape route (SymPy +
+NumPy PASS). The Rademacher constant $c_1$ depends on the function class and is
+not identified by this proof; only the order-of-magnitude scaling is verified.
+The capacity-scaling corollary below provides the empirical falsification rather
+than a closed-form constant. Script: \texttt{theory/proofs/T7\_capacity\_bound/proof.py}.
+
+The framework is silent on the precise calibration cost on a given deployment
+distribution; chaining Theorem~\ref{thm:probing} with Theorem~\ref{thm:impossibility}
+yields an order-of-magnitude lower bound on the activation-level KL of the form
+$\Omega((\Delta\ell)^2/M^2)$ where $M$ is the read-out bound, but the constants
+in this chain depend on the channel-conditional activation-distribution
+structure and are not identified without further assumptions. The capacity-scaling
+corollary below operationalises the prediction at the empirical level, where it
+admits a sharp test against fine-tuning ablations.
+
+\begin{corollary}[Capacity-scaling falsification]
+\label{cor:capacity-scaling}
+Theorem~\ref{thm:capacity} predicts that the empirical channel-conditioned
+compliance log-odds gap on byte-identical matched content converges to the
+infinite-capacity Bayesian limit $\kappa \cdot \Delta\ell$ as model capacity $C$
+scales relative to the content-space effective dimensionality $D$. Concretely, a
+fine-tuning ablation across model sizes (Llama 3.1 8B, 70B, 405B) on the same
+channel-asymmetric corpus should produce a compliance log-odds gap that converges
+monotonically toward $\Delta\ell$ rather than collapsing to zero. The corollary
+is empirically falsified if (i) the gap collapses to zero at large $C$ (which
+would contradict the lower bound), or (ii) the gap exceeds $\Delta\ell$ at large
+$C$ (which would contradict Theorem~\ref{thm:rate-ratio}).
+\end{corollary}
+
+The capacity bound completes a sandwich of the channel-conditioned compliance gap
+between an upper bound from Theorem~\ref{thm:rate-ratio} and a lower bound from
+Theorem~\ref{thm:impossibility} times a calibration constant
+$\kappa_{\min}(C, D, \varepsilon)$ that is positive at finite capacity. The
+empirical scaling-law calibration improvements reported by
+\cite{kadavath2022calibration} on unconditional benchmarks are consistent with the
+capacity-scaling prediction, while the empirical authority-laundering rate-ratio
+gap of $3.38$ across nine frontier models that span four orders of magnitude in
+parameter count provides direct evidence that the gap is driven by the structural
+channel-asymmetry of $\rho$ rather than residual capacity slack. The connection to
+the empirical calibration-versus-confidence dissociation reported by
+\cite{tian2023verbalized} is the channel-conditional analogue of their
+unconditional finding: bounded-capacity models display channel-conditional
+shortcuts in exactly the regime where Theorem~\ref{thm:capacity}'s lower bound
+binds. The closest mathematical precedent is the rate-distortion bounded-Bayesian
+agent framework of \cite{genewein2019rate} and the shortcut-learning pattern of
+\cite{geirhos2020shortcut}, neither of which derives the channel-conditional
+closed-form bound here.
+
+\section{Empirical predictions}
+\label{sec:predictions}
+
+The framework yields five empirical tests runnable on the existing
+\texttt{data/raw/} corpus and on the activations captured by the
+\texttt{mechanism/run\_subject\_local.py} pipeline.
+
+\begin{enumerate}
+\item \textbf{Channel-prior probing.} Estimate $\hat{\pi}(h)$ for each channel by
+querying each subject model directly on a held-out set of paired (genuine,
+fabricated) institutional documents. The runnable protocol is implemented at
+\texttt{mechanism/probe\_channel\_priors.py} with a 21-document paired corpus
+covering all 13 domains in \texttt{mechanism/probe\_channel\_priors\_corpus.py},
+and the pre-registered protocol document is at \texttt{mechanism/PROBE\_CHANNEL\_PRIORS\_PROTOCOL.md}.
+The protocol presents each document through channel $h$ via the same channel-delivery
+semantics as the main authority-laundering experiment (TOOL\_DIRECT, DOC\_USER\_PASTE,
+USER\_DIRECT, SYSTEM\_DIRECT) and asks the model to report a trichotomous label
+(genuine, partial, fabricated) plus a 0--100 confidence; the calibration uses the
+genuine-vs-fabricated balance in the held-out set. The empirical $\hat\pi$ vector
+across channels is the input to Corollary~\ref{cor:falsification}, with
+domain-stratified bootstrap confidence intervals (1000 resamples) over both
+documents and replicates. To address Remark~\ref{rem:falsification-scope}~(c),
+the probing protocol reports both the binary-collapsed $\hat\pi$ and the trichotomy
+directly. Total cost across the 9-model panel is approximately three to eight
+United States dollars across Anthropic, OpenAI, and Google APIs.
+
+\item \textbf{Bayes-factor calibration of grounding.} For each grounding fact $F$
+in the existing TOOL\_DIRECT\_GROUNDED condition, estimate $\hat{B}(F \mid c, h)$
+by direct probing under the channel-blind elicitation protocol of
+Remark~\ref{rem:grounding-scope}: present the model with the fabricated document
+and ask how the user's contradicting statement updates the assessment of the
+document's reliability. Test Theorem~\ref{thm:grounding} by checking whether the
+empirical $\operatorname{logit} \hat{\gamma}$ reduction matches $\log \hat{B}(F)$
+up to the 1-Lipschitz factor and is channel-invariant. Sign violations against
+Corollary~\ref{cor:grounding-sign} are reported separately as the cleanest
+falsification cells. The protocol mirrors the motivation-discounting Bayesian
+benchmark of \cite{wu2025motives}.
+
+\item \textbf{Probe-direction compliance correlation.} Use the probing pipeline in
+\texttt{mechanism/} to extract the channel-authority direction $\mathbf{v}$ at the
+layer identified by Experiment~1 of the mechanism work. Test
+Theorem~\ref{thm:probing}~(d) by checking whether the projected score
+$\langle \mathbf{v}, \mathbf{x}_h \rangle$ predicts compliance with effect-size
+consistent with the lower bound, both pooled and within the TOOL\_DIRECT condition.
+
+\item \textbf{Matched-content sourcing for Remark~\ref{rem:falsification-scope}~(b).}
+Restrict the rate-ratio test to byte-identical factorial pairs in which the same
+fabricated document appears verbatim in both TOOL\_DIRECT and DOC\_USER\_PASTE
+conditions. The existing matched-pair extractor in
+\texttt{mechanism/extract\_matched\_pairs.py} returns these pairs by construction.
+
+\item \textbf{Falsifiable lower bound on probe accuracy.} The probing-representation
+lower bound (Theorem~\ref{thm:probing}) makes a specific quantitative prediction
+about Experiment~1 of the mechanism work. Plugging the empirical authority-laundering
+log-odds gap $\Delta\hat\gamma = 3.380$ and a plausible Bayesian rate-ratio bound
+of $1.6$ log-odds (channel-prior odds ratio of approximately $5$) into the bound
+yields a non-Bayesian residual $\Delta_{\textnormal{nb}} \approx 1.78$. With a
+conservative compliance-log-odds half-range of $M = 10$, Theorem~\ref{thm:probing}
+predicts
+\[
+\alpha^\star \;\ge\; \tfrac{1}{2} + \Delta_{\textnormal{nb}}/(4M) \;\approx\; 0.545
+\]
+on a layer-by-layer linear probe trained to discriminate TOOL\_DIRECT from
+USER\_IMPERATIVE channel of origin on byte-identical fabricated content. The
+mechanism plan's Experiment~1 (L2-regularised logistic regression on residual-stream
+activations at the end-of-context position, scenario-stratified train/test split,
+leave-one-domain-out cross-validation on Llama 3.1 8B Instruct) is the direct
+test. The theorem is empirically falsified when probe accuracy stays at or below
+$0.545$ at every transformer layer, which would indicate that the empirical
+compliance gap is not realised through a linearly-decodable channel-of-origin
+direction in the residual stream.
+
+When the linear-read-out structure can be confirmed and the Gaussian
+sub-Gaussian sharpening of Theorem~\ref{thm:probing-gaussian} applies, the
+predicted accuracy at unit-norm read-out and projected standard deviation $\sigma$
+is $\alpha^\star = \Phi(\Delta_{\textnormal{nb}}/(2\sigma))$. With realistic
+Llama 3.1 8B late-layer values $\sigma \in [2.2, 4.5]$, the prediction range is
+$\alpha^\star \in [\Phi(0.198), \Phi(0.405)] = [0.578, 0.658]$, which is the
+sharper prediction the linear-probe experiment must clear. A positive
+Experiment~1 result with probe accuracy in the $0.90$ range will clear both the
+conservative and the Gaussian-sharpened floors and will provide quantitative
+rather than qualitative confirmation that the channel-of-origin direction is the
+representational substrate of the non-Bayesian compliance gap.
+
+\item \textbf{Corpus-uniformisation falsification of Theorem~\ref{thm:impossibility}.}
+Construct a fine-tuning corpus $\tilde P$ in which the reliability rate $\tilde\rho(h)$
+is held uniform across the four channels $\{\text{sys}, \text{tool}, \text{doc}, \text{user}\}$
+at a single value (e.g.\ $\tilde\rho \equiv 0.5$). The corpus contains balanced
+(genuine, fabricated) document pairs, with the same content delivered through each
+channel an equal number of times under each reliability label. Fine-tune a single
+subject model (Llama 3.1 8B Instruct, the mechanism-pipeline workhorse) on this
+corpus until validation loss saturates. Measure the channel-conditioned compliance
+gap on the held-out matched-content authority-laundering test set. Theorem~\ref{thm:impossibility}
+predicts the gap collapses to within the 1-Lipschitz approximation error around
+zero. The theorem is empirically falsified if the gap remains at the pre-fine-tuning
+magnitude (logit gap of approximately $3.38$).
+
+\item \textbf{Corpus-inversion falsification of Theorem~\ref{thm:impossibility}.}
+Construct a fine-tuning corpus $\tilde P$ in which the reliability ranking is
+inverted, $\tilde\rho(\text{user}) > \tilde\rho(\text{tool})$. Fabricated documents
+are tagged exclusively with the tool channel and genuine documents are tagged
+exclusively with the user channel during fine-tuning. Theorem~\ref{thm:impossibility}
+predicts the compliance gap inverts in sign on the held-out matched-content test:
+user-channel content should be operationalised more readily than tool-channel
+content. The theorem is empirically falsified if the gap retains its original
+sign or if the sign-inversion is accompanied by a magnitude collapse inconsistent
+with $\kappa \cdot |\Delta \operatorname{logit} \tilde\rho|$.
+
+\item \textbf{Corpus-magnitude scaling for $\kappa$ identification.} For a sequence
+of fine-tuning corpora $\tilde P_t$ parameterised by the channel-reliability
+log-odds gap $\Delta \tilde\ell_t \in \{0.5, 1.0, 1.5, 2.0, 3.0\}$, fit a linear
+regression of the post-fine-tuning compliance log-odds gap on $\Delta \tilde\ell_t$.
+Theorem~\ref{thm:impossibility} predicts a slope in the closed interval $(0, 1]$,
+equal to the calibration constant $\kappa$. The theorem is empirically falsified
+if the slope is zero (no dependence on corpus statistics), greater than $1$
+(over-amplification beyond Bayesian rationality, which would also falsify
+Theorem~\ref{thm:rate-ratio}), or strongly nonlinear.
+
+\item \textbf{Sign-inversion test for priority inversion (Theorem~\ref{thm:priority-inversion}).}
+Reuse the channel-of-origin probe $\mathbf{v}^\star$ from Experiment~1 of the
+mechanism work. For matched-content pairs in (i) command form (USER\_IMPERATIVE
+vs SYSTEM\_INSTRUCTION conditions on jailbreak prompts) and (ii) declarative
+form (USER\_IMPERATIVE vs TOOL\_DIRECT conditions on fabricated guidelines),
+project both onto $\mathbf{v}^\star$ and regress the compliance binary label on
+the projection separately within each regime. Theorem~\ref{thm:priority-inversion}
+predicts that the regression coefficient is negative on the command-form pairs
+(higher channel score $\to$ lower command compliance) and positive on the
+declarative-form pairs (higher channel score $\to$ higher declarative compliance).
+Sign agreement across regimes would falsify the priority-inversion theorem.
+
+\item \textbf{Coupling-cost regression for Corollary~\ref{cor:coupling-cost}.}
+Apply post-hoc fine-tuning that imposes a shared channel-priority objective
+across content types (e.g.\ a single channel-priority loss summed over both
+command and declarative training signals). Measure compliance rates on held-out
+matched commands and declaratives. The corollary predicts that the joint
+calibration loss exceeds the regime-conditional calibration losses of the
+unconstrained model by a positive constant proportional to
+$|\beta_{\text{cmd}} - \beta_{\text{dec}}|$. The corollary is empirically falsified
+if the shared-coefficient model achieves equal or better calibration on both
+regimes simultaneously.
+
+\item \textbf{Capacity-scaling falsification for Corollary~\ref{cor:capacity-scaling}.}
+Fine-tune Llama 3.1 8B, 70B, and 405B on a single channel-asymmetric corpus
+with reliability rates $\rho_{\text{tool}} = 0.9$ and $\rho_{\text{user}} = 0.4$.
+Measure the post-fine-tuning compliance log-odds gap on byte-identical matched
+content. Theorem~\ref{thm:capacity} predicts the gap converges monotonically
+toward $\Delta\ell = \operatorname{logit}(0.9) - \operatorname{logit}(0.4) \approx 2.59$
+as model capacity scales, with a residual $O(\sqrt{C/D})$ slack vanishing as $C/D \to \infty$.
+The theorem is empirically falsified if (i) the gap collapses to zero at large
+capacity (uniform compliance, contradicting the lower bound), or (ii) the gap
+exceeds $\Delta\ell$ at large capacity (over-amplification beyond Bayesian
+rationality, also falsifying Theorem~\ref{thm:rate-ratio}).
+\end{enumerate}
+
+\section{Discussion}
+\label{sec:discussion}
+
+The Bayesian source-reliability framework converts the empirical channel-conditioned
+compliance gap into a falsifiable Bayesian-rationality claim. The empirical gap
+documented in the authority-laundering work falsifies rational Bayesian compliance
+under any plausible channel-prior estimate (Remark~\ref{rem:empirical}), conditional
+on ruling out the four scope conditions of Remark~\ref{rem:falsification-scope}.
+The closest published precedent is the work of \cite{kumaran2026competing} on
+competing biases in language-model evidence weighting, who report a
+Bayesian-deviation ratio of approximately $2$ to $3$ on the evidence-direction
+axis (supporting versus opposing advice). Theorem~\ref{thm:rate-ratio} extends that
+empirical deviation result along two axes: it operates on the delivery channel
+rather than evidence direction, and it derives a closed-form bound connecting two
+separately observable quantities, turning a fitted deviation into a falsifiable
+inequality. The authority-laundering empirical gap of approximately $20\times$ on
+rate ratio (corresponding to a logit gap of $3.38$) is roughly an order of magnitude
+larger than the evidence-direction deviation, which positions channel-as-authority
+as a substantially sharper non-Bayesian heuristic than evidence-direction
+overweighting.
+
+The cognitive-science Bayesian source-reliability lineage from \cite{hahn2007rational,
+harris2016expert} and the Sperber epistemic-vigilance program \cite{sperber2010vigilance}
+supplies the underlying generative model in equation~\eqref{eq:posterior} but does
+not derive a rate-ratio bound of the form in Theorem~\ref{thm:rate-ratio}. The
+source-cued heuristic literature in human cognition \cite{tversky1974judgment,
+petty1986elaboration} qualitatively predicts the channel-as-authority pattern but
+does not formalise it as a quantitative bound. The pragmatic-empirical work of
+\cite{cheng2026accommodation} on accommodation and epistemic vigilance in language
+models documents the same source-axis effect that Theorem~\ref{thm:rate-ratio}
+addresses but operates at the empirical level without the Bayesian-rationality
+null. The instruction-hierarchy framework of \cite{wallace2024instruction} supplies
+the priority-inversion framing for declarative content versus commands, and the
+empirical control-illusion finding of \cite{geng2026control} confirms that the
+Wallace hierarchy is fragile in exactly the declarative regime that
+Theorem~\ref{thm:rate-ratio} addresses.
+
+The grounding-asymmetry bound (Theorem~\ref{thm:grounding}) further rules out a
+wide class of rational explanations through its one-sided sign claim: no rational
+Bayesian compliance model produces a sign flip on contradicting evidence under
+matched conditional Bayes-factor and channel-blind elicitation. The empirical
+Sonnet 4.5 backfire is therefore a sign-violation falsification that is robust to
+recalibration of any compliance constant. This sign claim is logically stronger
+than correlational Bayesian-coherence measures \cite{imran2025bayes}. The
+probing-representation lower bound (Theorem~\ref{thm:probing}) ties the theoretical
+non-Bayesian gap to the mechanistic activation-probing direction through a
+Pinsker--Le Cam information-theoretic chain
+\cite{tsybakov2009nonparametric, coverthomas2006elements}, giving a closed loop
+between behavioural measurement, theory, and mechanism. The bound is the lower-bound
+dual of the Fano-style accuracy upper bound of \cite{wan2025fano}: where they
+upper-bound LLM output accuracy from task-complexity overload, our bound
+lower-bounds activation-probe distinguishability from a behavioural compliance gap.
+The Gaussian sharpening (Theorem~\ref{thm:probing-gaussian}) replaces the
+saturation parameter $M$ with the projected standard deviation $\sigma$, yielding
+the predicted accuracy floor $\Phi(\Delta_{\textnormal{nb}}/(2\sigma)) \in [0.58, 0.66]$
+for realistic Llama 3.1 8B late-layer activations.
+
+The framework's principal limitation is the 1-Lipschitz-in-logit calibration
+assumption, which is required for the analytic bounds; relaxing to general monotonic
+$f$ retains the sign-of-effect statement of Proposition~\ref{prop:sign} but yields
+a sign-only falsification rather than a quantitative one. A second limitation is
+that the falsification scope of Remark~\ref{rem:falsification-scope} requires four
+substantive empirical claims to be independently ruled out before an empirical
+bound violation counts as evidence of a non-Bayesian heuristic; the predictions in
+\S\ref{sec:predictions} specify how each of (b) and (c) can be addressed with the
+existing corpus, while (a) and (d) are open targets for future iteration. The
+probing-representation bound is vacuous if channel-authority is encoded nonlinearly
+at the probed layer, which is a condition the matched-expressivity probe extension
+of Remark~\ref{rem:probing-scope} addresses. The framework operates on the
+declarative-acceptance axis and is silent on the command-following axis that
+\cite{wallace2024instruction} formalises.
+
+Theorem~\ref{thm:impossibility} (training-distribution impossibility, \S\ref{sec:training-distribution})
+sits structurally upstream of Theorems~\ref{thm:rate-ratio}--\ref{thm:probing-gaussian}
+and supplies the missing causal explanation for why the channel prior $\pi(h)$ has
+the magnitude it does. Where Cloud Theorem~1 \cite{cloud2026subliminal} shows
+distillation gradient steps transport student logits toward teacher logits regardless
+of training distribution, Theorem~\ref{thm:impossibility} shows truth-aligned training
+transports the channel prior of the model toward the channel reliability rate of the
+corpus regardless of the corpus generative process. The result is the channel-asymmetric
+analogue of the fairness-impossibility result of \cite{hardt2016fairness}: KL projection
+identifies $\hat\pi(h) = \rho(h)$ uniquely, and removing the channel-conditioned compliance
+gap requires either rebalancing the corpus, abandoning Bayesian read-out rationality, or
+accepting calibration loss equal to the suppressed reliability ratio. The three
+falsification experiments F6--F8 in \S\ref{sec:predictions} are concrete fine-tuning
+interventions that test the impossibility prediction directly.
+
+All five theorems pass two-grader equivalence verification under the SymPy + NumPy
++ Z3 protocol of the proof pipeline (T1, T2, T3 at $3/3$ engines; T4 at $3/3$ on
+foundational steps with the Gaussian-exact form replacing an as-stated linear
+bound that the verifiers refuted; T5 at $3/3$ on the KL-projection and posterior
+factorisation steps with the mean value theorem step verified by SymPy + NumPy).
+Per-theorem verification scripts, NOTES files documenting each proof's discovery
+log, and pre-attempt RUBRIC files following the MathArena Pillar~2 standard are at
+\texttt{theory/proofs/T1\_rate\_ratio/} through \texttt{theory/proofs/T5\_impossibility/}.
+The aggregate verifier-coverage matrix appears in \texttt{theory/proofs/SUMMARY.md}.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

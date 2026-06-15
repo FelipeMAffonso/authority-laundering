@@ -153,7 +153,7 @@ documents per model, $4$ channels, $3$ replicates per cell).
 **Theory.** Theorem 3 (Pinsker-Le Cam-Kantorovich-Rubinstein bound) plus
 Theorem 4 (Gaussian sharpening). Predicted conservative floor:
 $\alpha^\star \ge 0.545$ ($M = 10$). Gaussian-sharpened range:
-$\alpha^\star \in [0.578, 0.658]$ ($\sigma \in [2.2, 4.5]$). Corollary 7
+$\alpha^\star \in [0.579, 0.659]$ ($\sigma \in [2.2, 4.5]$). Corollary 7
 operationalises the test as "linear probe of channel-of-origin from
 residual-stream activations on byte-identical matched pairs."
 
@@ -181,14 +181,14 @@ layer 7, with leave-one-domain-out mean accuracy 1.000 across all 16 domains.
 Test accuracy reaches 0.98 by layer 3 and remains in the 0.96-1.00 band across
 layers 3-31. The observed accuracy exceeds the Theorem 3 conservative floor
 (0.545) at every layer above L0 and exceeds the Theorem 4 Gaussian-sharpened
-upper bound (0.658) at every layer above L1. Raw JSON:
+upper bound (0.659) at every layer above L1. Raw JSON:
 `mechanism/outputs/exp1_results_llama.json`.
 
 **Mistral 7B v0.3 (n_trials = 174, 32 layers, best = L10).** The probe recovers
 the channel-of-origin label with test accuracy 1.000 (95% CI [1.000, 1.000]) at
 layer 10, with leave-one-domain-out mean accuracy 0.979 across the 13 domains
-present in the 174-trial subset. Test accuracy first crosses the Theorem 4 lower
-bound (0.578) at layer 1 (0.813) and saturates from layer 5 onward. Layers 20-31
+present in the 174-trial subset. Test accuracy already exceeds the Theorem 4 lower
+bound (0.579) at layer 0 (0.781) and saturates from layer 5 onward. Layers 20-31
 show test accuracy holding at 0.844, still well above the Theorem 4 upper bound.
 Raw JSON: `mechanism/outputs/exp1_results_mistral.json`.
 
@@ -212,11 +212,13 @@ at perfect accuracy in both. Raw JSON: `mechanism/outputs/exp1_results_llama32_3
 
 **Cross-subject aggregate.** All four open-weight subjects exceed the
 Theorem 3 conservative floor ($\alpha^\star \ge 0.545$) and the Theorem 4
-Gaussian-sharpened range ([0.578, 0.658]) at every layer above L0, with
+Gaussian-sharpened range ([0.579, 0.659]) at every layer above L0, with
 test accuracy reaching 1.000 at the best layer for every subject. The
 Corollary 7 prediction that channel-of-origin is linearly decodable from
 residual-stream activations on byte-identical paired stimuli is corroborated
-in 3 of 3 subjects.
+in 4 of 4 subjects (Llama 3.1 8B, Llama 3.2 3B, Mistral 7B v0.3, Qwen 2.5 7B);
+the per-subject table above lists the three earliest-completed subjects, with
+Llama 3.2 3B reported in the Prediction 4 block.
 
 ---
 
@@ -238,9 +240,11 @@ AUC against the panel-majority compliance label.
 
 | Subject | Best layer | n_total | Pooled AUC | TOOL-only AUC | USER-only AUC |
 |---|---|---|---|---|---|
-| Llama 3.1 8B | 7 | 224 | 0.850 | 0.374 | 0.825 |
+| Llama 3.1 8B | 7 | 223 | 0.849 | 0.374 | 0.826 |
 | Mistral 7B v0.3 | 10 | 174 | 0.531 | 0.244 | 0.523 |
 | Qwen 2.5 7B | 0 | 224 | 0.514 | 0.475 | 0.506 |
+
+*Note.* Llama 3.1 8B values are the panel-majority recompute (n=223), matching `exp2_results_llama.json` and main-text Fig 5; an earlier pre-panel-majority row (n=224, 0.850/0.825) is superseded.
 
 ### Narrative
 
@@ -420,7 +424,7 @@ Raw JSON: `mechanism/outputs/cross_judge_kappa.json`.
 
 **Theory.** Theorem 3 (Pinsker-Le Cam-Kantorovich-Rubinstein bound) plus
 Theorem 4 (Gaussian sharpening). Predicted floor: $\alpha^\star \ge 0.545$
-conservative ($M = 10$), $\alpha^\star \in [0.578, 0.658]$ Gaussian-sharpened
+conservative ($M = 10$), $\alpha^\star \in [0.579, 0.659]$ Gaussian-sharpened
 ($\sigma \in [2.2, 4.5]$).
 
 **Status:** subsumed by Prediction 4 above. The cross-subject linear-probe

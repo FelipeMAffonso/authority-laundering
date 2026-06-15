@@ -1,6 +1,6 @@
 T1 - Rate-ratio bound under 1-Lipschitz logit-compliance
    logit gamma(c, h1) - logit gamma(c, h2) <= logit pi(h1) - logit pi(h2)
-   seed=42, time=2026-05-06 20:21:21
+   seed=42, time=2026-06-11 22:37:39
 ------------------------------------------------------------------------------
 [SymPy] symbolic verification of the rate-ratio decomposition
   posterior-logodds decomposition (h1): residual=0

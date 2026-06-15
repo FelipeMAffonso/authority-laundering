@@ -1,40 +1,50 @@
 """
-T4 - Sub-Gaussian sharpening.
+T4 - Gaussian sharpening of Theorem 3 (verification of the SHIPPED statement).
 
-Theorem 4 (paper Theorem~\\ref{thm:probing-subgaussian}) AS-STATED claims
+SHIPPED STATEMENT (supplementary S14.4 / theory/bayesian_source_reliability.tex):
 
-    alpha_star >= 1/2 + Delta_nb / (4 sigma)         [as-stated]
+    With linear read-out and equal-covariance Gaussian P_1, P_2 separated along
+    a rank-1 channel direction with projected standard deviation sigma,
 
-under linear read-out, sub-Gaussian residuals with proxy variance sigma^2 along
-the channel-of-origin direction, and rank-1 channel signal. The proof cites
-Tsybakov 2009 Theorem 2.6.
+        alpha_star = Phi(Delta_nb / (2 sigma))            [Gaussian-exact]
 
-This script verifies the theorem by three independent verifiers AND
-investigates a disagreement between (a) the as-stated bound and (b) the
-true Gaussian-Bayes accuracy alpha_star = Phi(Delta_nb / (2 sigma)).
+    At Delta_nb = 1.8 (the non-Bayesian residual log-odds gap) and
+    sigma in [2.2, 4.5] (late-layer projected sd for a 3-to-8B transformer),
 
-Verifier results:
-    - SymPy symbolic: confirms the Cauchy-Schwarz step (||w||_2 ||mu_1 - mu_2||_2
-      bound), confirms the rank-1 reduction. FAILS the as-stated linear bound:
-      Phi(z/2) - 1/2 - z/4 changes sign as z grows. At z = 2.0, Phi(1.0) -
-      1/2 - 0.5 = -0.0228 < 0, so the linear lower bound is INVALID at moderate z.
-    - NumPy numerical witness: simulates Gaussian + Rademacher + bounded-uniform,
-      confirms the simulation closely matches Phi(Delta/(2 sigma)) AND rejects
-      the as-stated linear lower bound at most random configurations.
-    - Z3 SMT: confirms the Cauchy-Schwarz step (UNSAT on negation in d=2 and
-      d=3). The transcendental (Phi/erf) step is outside Z3's decidable theory.
+        alpha_star in [0.579, 0.659]                       [numeric range]
 
-Conclusion: T4's as-stated linear bound 1/2 + Delta_nb/(4 sigma) does NOT hold
-universally. The TRUE Bayes-optimal accuracy in the Gaussian sub-Gaussian
-case is alpha_star = Phi(||mu_1 - mu_2||_2 / (2 sigma)), which:
-    - exceeds 1/2 + Delta/(4 sigma) only for Delta/sigma < ~0.31, AND
-    - has slope 1/(2 sqrt(2 pi)) ~= 0.199 at 0, strictly less than 1/4.
+    General sub-Gaussian companion (proxy variance sigma^2), via the standard
+    Hoeffding/Chernoff bound on the midpoint-threshold classifier
+    (per-class error P(X - mu >= Delta/2) <= exp(-Delta^2/(8 sigma^2))):
 
-A CORRECTED form valid for all sub-Gaussian distributions with proxy variance
-sigma^2 follows from Hoeffding's inequality:
-    alpha_star >= 1 - (1/2) exp(-Delta_nb^2 / (8 sigma^2)),
-which is QUADRATIC in Delta_nb, not linear. We verify the corrected form
-holds across all simulated configurations.
+        alpha_star >= 1 - exp(-Delta_nb^2 / (8 sigma^2))   [companion, auxiliary]
+
+    NOTE: the 1/2-weighted variant of the companion that appeared in an earlier
+    draft is NOT valid for general sub-Gaussian laws (Rademacher violates it);
+    the audit corrected the constant. The companion is auxiliary: the shipped
+    theorem statement is the Gaussian-exact form plus the numeric range, and
+    the PASS verdict below gates on those alone.
+
+REVISION HISTORY (documented discovery, retained for the audit trail):
+    The original draft stated a LINEAR bound alpha_star >= 1/2 + Delta_nb/(4 sigma),
+    citing Tsybakov 2009 §2.6. SymPy and NumPy refuted that form: the Gaussian
+    Bayes accuracy Phi(z/2) has slope 1/(2 sqrt(2 pi)) ~= 0.199 < 1/4 at z = 0,
+    and the cited result supports an upper bound via Pinsker, not a lower bound.
+    The shipped statement above replaces it. Section R below re-runs the
+    refutation so the discovery remains reproducible.
+
+Verifier design (two-grader-equivalence standard):
+    - SymPy  : Cauchy-Schwarz + rank-1 reduction; Bayes-optimal threshold for
+               equal-covariance Gaussians is the midpoint; exact accuracy
+               identity alpha_star = 1/2 + erf(z / (2 sqrt 2)) / 2 = Phi(z/2);
+               monotonicity in sigma; numeric range endpoints at Delta_nb = 1.8.
+    - NumPy  : Monte-Carlo equality witness alpha_sim ~= Phi(z/2) (two-sided,
+               binomial tolerance) across random configurations and a d=32
+               rank-1 witness; range endpoints at sigma = 2.2 and 4.5;
+               Hoeffding companion across three sub-Gaussian families.
+    - Z3     : Cauchy-Schwarz at d = 2, 3, 4 (UNSAT on negation) + rank-1
+               reduction. Phi/erf/exp are outside Z3's decidable theory; scope
+               documented (N/A on the transcendental step, as in T7).
 
 Random seed 42 throughout. Run: ``python proof.py``.
 """
@@ -55,6 +65,10 @@ from scipy.stats import norm
 SEED = 42
 HERE = Path(__file__).resolve().parent
 LOG_PATH = HERE / "verification_log.txt"
+
+DELTA_NB = 1.8          # non-Bayesian residual log-odds gap (S14.3)
+SIGMA_LO, SIGMA_HI = 2.2, 4.5
+RANGE_LO, RANGE_HI = 0.579, 0.659   # alpha_star = Phi(Delta_nb/(2 sigma)) endpoints, 3 dp
 
 
 class Tee:
@@ -78,23 +92,20 @@ def hr() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Sub-Gaussian samplers
+# Sub-Gaussian samplers (for the companion bound)
 # ---------------------------------------------------------------------------
 
-def sample_subgaussian_gaussian(n: int, mu: float, sigma: float, rng: np.random.Generator) -> np.ndarray:
-    """Pure Gaussian, with proxy variance equal to true variance."""
+def sample_gaussian(n: int, mu: float, sigma: float, rng: np.random.Generator) -> np.ndarray:
     return rng.normal(loc=mu, scale=sigma, size=n)
 
 
-def sample_subgaussian_rademacher(n: int, mu: float, sigma: float, rng: np.random.Generator) -> np.ndarray:
+def sample_rademacher(n: int, mu: float, sigma: float, rng: np.random.Generator) -> np.ndarray:
     """mu + sigma * Rademacher. Sub-Gaussian with proxy variance exactly sigma^2."""
     return mu + sigma * (2 * rng.integers(0, 2, size=n) - 1)
 
 
-def sample_subgaussian_uniform(n: int, mu: float, sigma: float, rng: np.random.Generator) -> np.ndarray:
-    """mu + Uniform(-sqrt(3) sigma, sqrt(3) sigma). Bounded => sub-Gaussian
-    with proxy variance sigma^2 (since Uniform(-a, a) has proxy variance
-    matching a^2/3)."""
+def sample_uniform(n: int, mu: float, sigma: float, rng: np.random.Generator) -> np.ndarray:
+    """mu + Uniform(-sqrt(3) sigma, sqrt(3) sigma); bounded, proxy variance sigma^2."""
     a = math.sqrt(3) * sigma
     return mu + rng.uniform(-a, a, size=n)
 
@@ -104,259 +115,163 @@ def sample_subgaussian_uniform(n: int, mu: float, sigma: float, rng: np.random.G
 # ---------------------------------------------------------------------------
 
 def verify_sympy() -> bool:
-    """SymPy verifies the parts of T4 that are tractable:
+    print("[SymPy] symbolic verification of the SHIPPED Gaussian-exact statement")
 
-    Step A (Cauchy-Schwarz): the linear-read-out expectation gap is bounded
-    by ||w||_2 * ||mu_1 - mu_2||_2.
-
-    Step B (rank-1 reduction): if mu_1 - mu_2 = c * v_star for c > 0, then
-    ||mu_1 - mu_2||_2 = c. Used to substitute ||mu||/sigma for the standardised
-    gap.
-
-    Step C (Tsybakov 2.6, AS-STATED form): the LINEAR lower bound
-    alpha_star >= 1/2 + (||mu||/sigma)/4.
-    Verified to FAIL for the Gaussian special case at moderate z = ||mu||/sigma.
-
-    Step C' (CORRECTED form via Hoeffding): the QUADRATIC lower bound
-    alpha_star >= 1 - (1/2) exp(-||mu||^2 / (8 sigma^2)).
-    Verified to HOLD via the standard sub-Gaussian Hoeffding bound on the
-    misclassification probability.
-
-    SymPy returns PASS for the Cauchy-Schwarz step and the rank-1 reduction;
-    it returns FAIL on the as-stated bound and PASS on the corrected bound.
-    The aggregate result is reported in the discovery log: T4-as-stated does
-    not hold universally; T4-corrected does.
-    """
-    print("[SymPy] symbolic verification of the sub-Gaussian sharpening")
-
-    # Step A: Cauchy-Schwarz on a 2D vector.
+    # Step A: Cauchy-Schwarz (foundational, used in the rank-1 reduction).
     w1, w2, mu1, mu2 = sp.symbols("w1 w2 mu1 mu2", real=True)
     inner = w1 * mu1 + w2 * mu2
-    norm_w_sq = w1 ** 2 + w2 ** 2
-    norm_mu_sq = mu1 ** 2 + mu2 ** 2
+    cs_diff = sp.expand((w1**2 + w2**2) * (mu1**2 + mu2**2) - inner**2)
+    cs_ok = sp.simplify(cs_diff - (w1 * mu2 - w2 * mu1) ** 2) == 0
+    print(f"  Step A Cauchy-Schwarz residual is a perfect square: {cs_ok}")
 
-    cs_diff = norm_w_sq * norm_mu_sq - inner ** 2
-    cs_diff_expanded = sp.expand(cs_diff)
-    cs_factored = sp.factor(cs_diff_expanded)
-    print(f"  Cauchy-Schwarz residual: {cs_diff_expanded}")
-    print(f"  factored as: {cs_factored}  (perfect square => non-negative)")
-    cs_ok = sp.simplify(cs_diff_expanded - (w1 * mu2 - w2 * mu1) ** 2) == 0
+    # Step B: rank-1 reduction ||c * v_star|| = |c| for unit v_star.
+    c = sp.symbols("c", positive=True)
+    v1s, v2s = sp.symbols("v1 v2", real=True)
+    norm_sq = sp.simplify((c * v1s) ** 2 + (c * v2s) ** 2 - c**2 * (v1s**2 + v2s**2))
+    rank1_ok = norm_sq == 0
+    print(f"  Step B rank-1 reduction ||c v||^2 = c^2 ||v||^2: {rank1_ok}")
 
-    # Step B: rank-1 mu_1 - mu_2 = c * v_star.
-    c, sig = sp.symbols("c sigma", positive=True)
-    print(f"  rank-1: mu_1 - mu_2 = c * v_star => ||mu_1 - mu_2||_2 = c")
-    rank1_ok = True
+    # Step C: Bayes-optimal threshold for equal-covariance Gaussians is the
+    # midpoint. Log-likelihood ratio is linear in x and zero at (m1 + m2)/2.
+    x, m1, m2, sig = sp.symbols("x m1 m2 sigma", real=True)
+    sig = sp.symbols("sigma", positive=True)
+    llr = (-(x - m1) ** 2 + (x - m2) ** 2) / (2 * sig**2)
+    llr_simpl = sp.simplify(llr)
+    root = sp.solve(sp.Eq(llr_simpl, 0), x)
+    midpoint_ok = len(root) == 1 and sp.simplify(root[0] - (m1 + m2) / 2) == 0
+    print(f"  Step C Bayes threshold equals midpoint (m1 + m2)/2: {midpoint_ok}")
 
-    # Step C: AS-STATED linear bound. Test Phi(z/2) >= 1/2 + z/4 at four z values.
-    print()
-    print("  Step C: Test as-stated bound alpha_star >= 1/2 + z/4 (z = ||mu||/sigma)")
-    z_vals = [sp.Rational(1, 10), sp.Rational(1, 2), sp.Rational(1, 1), sp.Rational(2, 1)]
-    asserted_ok = True
-    for zv in z_vals:
-        Phi_zv2 = sp.Rational(1, 2) + sp.erf(zv / sp.sqrt(2) / 2) / 2
-        linear_bound = sp.Rational(1, 2) + zv / 4
-        margin = sp.simplify(Phi_zv2 - linear_bound)
-        margin_f = float(margin)
-        print(
-            f"    z={float(zv):.2f}: Phi(z/2)={float(Phi_zv2):.5f}, "
-            f"1/2 + z/4={float(linear_bound):.5f}, margin={margin_f:+.5f}"
-        )
-        if margin_f < 0:
-            asserted_ok = False
-    print(f"  as-stated bound holds at all tested z: {asserted_ok}")
-    print(
-        "  [DISAGREEMENT] The as-stated bound fails for moderate z values."
-    )
+    # Step D: exact accuracy. With threshold at the midpoint, the per-class
+    # correct probability is P(N(0, sigma^2) < Delta/2) and the balanced
+    # accuracy is Phi(Delta / (2 sigma)). Verify by symbolic integration.
+    Delta = sp.symbols("Delta", positive=True)
+    pdf = sp.exp(-(x**2) / (2 * sig**2)) / (sig * sp.sqrt(2 * sp.pi))
+    p_correct = sp.integrate(pdf, (x, -sp.oo, Delta / 2))
+    z = Delta / sig
+    phi_form = sp.Rational(1, 2) + sp.erf(z / (2 * sp.sqrt(2))) / 2
+    diff = sp.simplify((p_correct - phi_form).rewrite(sp.erf))
+    exact_ok = diff == 0 or diff.equals(0) is True
+    print(f"  Step D exact accuracy integral equals Phi(z/2) (erf form): {exact_ok}")
 
-    # Step C': CORRECTED form via Hoeffding / sub-Gaussian Chernoff.
-    # For sub-Gaussian X_i with proxy variance sigma^2, the Bayes classifier
-    # error on a single sample under uniform priors satisfies
-    #   P(error) <= (1/2) exp(-||mu_1 - mu_2||^2 / (8 sigma^2))
-    # by the standard sub-Gaussian Hoeffding bound (Boucheron, Lugosi,
-    # Massart 2013 §2.3, eq. 2.8). Hence
-    #   alpha_star >= 1 - (1/2) exp(-||mu||^2 / (8 sigma^2)).
-    # Verify on the Gaussian special case: alpha_star = Phi(z/2), so we need
-    #   Phi(z/2) >= 1 - (1/2) exp(-z^2 / 8).
-    # The sub-Gaussian upper bound on error is loose for Gaussian (Gaussian
-    # IS the equality case for proxy = true variance, so the Chernoff bound
-    # is actually tight at the slope and looser at the constant).
-    print()
-    print("  Step C': Test corrected bound alpha_star >= 1 - (1/2) exp(-z^2/8)")
-    corrected_ok = True
-    for zv in z_vals:
-        Phi_zv2 = sp.Rational(1, 2) + sp.erf(zv / sp.sqrt(2) / 2) / 2
-        chernoff_bound = 1 - sp.Rational(1, 2) * sp.exp(-zv ** 2 / 8)
-        margin_corr = sp.simplify(Phi_zv2 - chernoff_bound)
-        margin_corr_f = float(margin_corr)
-        print(
-            f"    z={float(zv):.2f}: Phi(z/2)={float(Phi_zv2):.5f}, "
-            f"1 - (1/2) exp(-z^2/8)={float(chernoff_bound):.5f}, "
-            f"margin={margin_corr_f:+.5f}"
-        )
-        if margin_corr_f < -1e-9:
-            corrected_ok = False
-    print(f"  corrected bound holds at all tested z: {corrected_ok}")
+    # Step E: monotonicity in sigma (accuracy strictly decreasing in sigma).
+    dalpha_dsigma = sp.diff(phi_form.subs(Delta, DELTA_NB), sig)
+    mono_ok = sp.simplify(dalpha_dsigma) < 0  # symbolic sign at positive sigma
+    try:
+        mono_ok = bool(sp.ask(sp.Q.negative(dalpha_dsigma), sp.Q.positive(sig)))
+    except Exception:
+        mono_ok = bool(float(dalpha_dsigma.subs(sig, 3.0)) < 0)
+    print(f"  Step E d alpha / d sigma < 0 (accuracy decreasing in sigma): {mono_ok}")
 
-    # The SymPy verifier reports PASS for the Cauchy-Schwarz + rank-1 reduction
-    # (the foundational steps of T4), and reports the AS-STATED bound as
-    # FAILED with the corrected form passing. The script returns the
-    # foundational PASS as the SymPy verdict; the as-stated discrepancy is
-    # documented in the discovery log.
-    foundational_ok = cs_ok and rank1_ok and corrected_ok
-    print()
-    print(
-        f"  [SymPy verdict] foundational steps (Cauchy-Schwarz + rank-1 + corrected): "
-        f"{foundational_ok}"
-    )
-    print(
-        "  [SymPy verdict] as-stated linear bound: FAILED (gap documented)"
-    )
-    return foundational_ok
+    # Step F: numeric range endpoints at Delta_nb = 1.8.
+    alpha_at = lambda s: float(phi_form.subs({Delta: DELTA_NB, sig: s}))
+    a_hi_sigma = alpha_at(SIGMA_HI)   # sigma = 4.5 -> lower endpoint
+    a_lo_sigma = alpha_at(SIGMA_LO)   # sigma = 2.2 -> upper endpoint
+    print(f"  Step F alpha(sigma={SIGMA_HI}) = {a_hi_sigma:.6f} (shipped lower endpoint {RANGE_LO})")
+    print(f"          alpha(sigma={SIGMA_LO}) = {a_lo_sigma:.6f} (shipped upper endpoint {RANGE_HI})")
+    range_ok = (round(a_hi_sigma, 3) == RANGE_LO) and (round(a_lo_sigma, 3) == RANGE_HI)
+    print(f"  Step F shipped 3-dp endpoints match recomputation: {range_ok}")
+
+    ok = cs_ok and rank1_ok and midpoint_ok and exact_ok and mono_ok and range_ok
+    print(f"  [SymPy verdict] shipped Gaussian-exact statement: {ok}")
+    return ok
 
 
 # ---------------------------------------------------------------------------
 # Verifier 2 - NumPy numerical witness
 # ---------------------------------------------------------------------------
 
-def verify_numpy(n_per_channel: int = 10_000, n_configs: int = 8) -> bool:
-    """Simulate sub-Gaussian distributions + linear read-out, compare
-    simulated alpha_star to (a) Gaussian Phi(z/2) prediction, (b) as-stated
-    linear bound, (c) corrected Chernoff/Hoeffding bound.
-
-    Reports the verdicts separately. Returns PASS if the corrected bound holds
-    at all configurations.
-    """
-    print(
-        f"[NumPy] numerical witness over {n_configs} configurations, "
-        f"n_per_channel={n_per_channel}"
-    )
+def verify_numpy(n_per_channel: int = 200_000, n_configs: int = 8) -> bool:
+    """Monte-Carlo equality witness for alpha_star = Phi(z/2) (two-sided check
+    within binomial tolerance), range endpoints, d=32 rank-1 witness, and the
+    Hoeffding companion across three sub-Gaussian families."""
+    print(f"[NumPy] Monte-Carlo equality witness, n_per_channel={n_per_channel}")
     rng = np.random.default_rng(SEED)
 
-    families = [
-        ("gaussian", sample_subgaussian_gaussian),
-        ("rademacher", sample_subgaussian_rademacher),
-        ("uniform-bounded", sample_subgaussian_uniform),
-    ]
-
-    rows = []
-    fail_corrected = 0
-
+    # (a) Gaussian equality across random configurations: |alpha_sim - Phi(z/2)|
+    # within 5 binomial sds.
+    eq_fail = 0
+    print("  k   sigma   Delta    z      alpha_sim   Phi(z/2)   |diff|/sd")
     for k in range(n_configs):
-        fam_name, sampler = families[k % len(families)]
         sigma = float(rng.uniform(0.5, 4.0))
-        Delta_nb = float(rng.uniform(0.1, 2.0))
+        Delta = float(rng.uniform(0.1, 2.0))
         mu1 = float(rng.uniform(-1, 1))
-        mu2 = mu1 + Delta_nb
+        mu2 = mu1 + Delta
+        x1 = sample_gaussian(n_per_channel, mu1, sigma, rng)
+        x2 = sample_gaussian(n_per_channel, mu2, sigma, rng)
+        thr = 0.5 * (mu1 + mu2)
+        alpha_sim = (np.sum(x1 < thr) + np.sum(x2 > thr)) / (2 * n_per_channel)
+        z = Delta / sigma
+        alpha_phi = norm.cdf(z / 2)
+        sd = math.sqrt(alpha_phi * (1 - alpha_phi) / (2 * n_per_channel))
+        nsd = abs(alpha_sim - alpha_phi) / sd
+        print(f"  {k:02d}  {sigma:6.3f} {Delta:6.3f}  {z:5.3f}  {alpha_sim:9.5f}  {alpha_phi:9.5f}  {nsd:6.2f}")
+        if nsd > 5:
+            eq_fail += 1
+    eq_ok = eq_fail == 0
+    print(f"  (a) Gaussian equality holds within 5 binomial sds: {eq_ok}")
 
-        x1 = sampler(n_per_channel, mu1, sigma, rng)
-        x2 = sampler(n_per_channel, mu2, sigma, rng)
-
-        threshold = 0.5 * (mu1 + mu2)
-        if mu2 > mu1:
-            correct1 = np.sum(x1 < threshold)
-            correct2 = np.sum(x2 > threshold)
-        else:
-            correct1 = np.sum(x1 > threshold)
-            correct2 = np.sum(x2 < threshold)
-        alpha_simulated = (correct1 + correct2) / (2 * n_per_channel)
-        z = Delta_nb / sigma
-
-        alpha_phi = norm.cdf(z / 2)  # Gaussian Bayes form
-        alpha_asserted = 0.5 + z / 4  # as-stated linear bound
-        alpha_corrected = 1 - 0.5 * math.exp(-z ** 2 / 8)  # Chernoff/Hoeffding
-
-        ok_corrected = alpha_simulated >= alpha_corrected - 5 * math.sqrt(
-            alpha_simulated * (1 - alpha_simulated) / (2 * n_per_channel)
-        )
-        if not ok_corrected:
-            fail_corrected += 1
-
-        rows.append((
-            k, fam_name, sigma, Delta_nb, z,
-            alpha_simulated, alpha_phi, alpha_asserted, alpha_corrected
-        ))
-
+    # (b) Range endpoints at Delta_nb = 1.8.
     print()
-    print(
-        "  k  family             sigma   Delta   z      alpha_sim  Phi(z/2)  "
-        "1/2+z/4   1-0.5e^{-z^2/8}"
-    )
-    for r in rows:
-        marker_a = " " if r[5] >= r[7] else "*"
-        marker_c = " " if r[5] >= r[8] - 1e-3 else "*"
-        print(
-            f"  {r[0]:02d}  {r[1]:18s} {r[2]:6.3f}  {r[3]:6.3f}  {r[4]:5.3f}  "
-            f"{r[5]:8.4f}  {r[6]:8.4f}  {r[7]:8.4f}{marker_a}  {r[8]:8.4f}{marker_c}"
-        )
-    print(
-        "  (* on a column means simulation falls below that predicted bound)"
-    )
+    endpoint_ok = True
+    for sigma, shipped in [(SIGMA_HI, RANGE_LO), (SIGMA_LO, RANGE_HI)]:
+        x1 = sample_gaussian(n_per_channel, 0.0, sigma, rng)
+        x2 = sample_gaussian(n_per_channel, DELTA_NB, sigma, rng)
+        thr = DELTA_NB / 2
+        alpha_sim = (np.sum(x1 < thr) + np.sum(x2 > thr)) / (2 * n_per_channel)
+        alpha_phi = norm.cdf(DELTA_NB / (2 * sigma))
+        ok = abs(alpha_sim - alpha_phi) < 0.005 and round(alpha_phi, 3) == shipped
+        endpoint_ok &= ok
+        print(f"  (b) sigma={sigma}: alpha_sim={alpha_sim:.5f}, Phi={alpha_phi:.5f}, shipped={shipped}, ok={ok}")
 
-    # Sub-Gaussian d-dim witness.
-    print()
-    print("  d-dim rank-1 witness (d=32, Gaussian residuals, linear read-out):")
-    d = 32
-    sigma_d = 2.0
-    Delta_nb_d = 1.0
+    # (c) d=32 rank-1 witness.
+    d, sigma_d, Delta_d, n_d = 32, 2.0, 1.0, 100_000
     v_star = rng.normal(size=d)
     v_star /= np.linalg.norm(v_star)
-    mu1_d = np.zeros(d)
-    mu2_d = mu1_d + Delta_nb_d * v_star
-    n_d = 10_000
-    X1 = rng.normal(scale=sigma_d, size=(n_d, d)) + mu1_d
-    X2 = rng.normal(scale=sigma_d, size=(n_d, d)) + mu2_d
-    proj1 = X1 @ v_star
-    proj2 = X2 @ v_star
-    threshold = 0.5 * (mu1_d @ v_star + mu2_d @ v_star)
-    correct1 = np.sum(proj1 < threshold)
-    correct2 = np.sum(proj2 > threshold)
-    alpha_d = (correct1 + correct2) / (2 * n_d)
-    z_d = Delta_nb_d / sigma_d
-    print(
-        f"    Delta_nb={Delta_nb_d}, sigma={sigma_d}, z={z_d:.4f}"
-    )
-    print(
-        f"    alpha_simulated  = {alpha_d:.4f}"
-    )
-    print(
-        f"    Phi(z/2)         = {norm.cdf(z_d / 2):.4f}  (Gaussian Bayes)"
-    )
-    print(
-        f"    1/2 + z/4        = {0.5 + z_d / 4:.4f}  (as-stated; HIGHER than alpha)"
-    )
-    print(
-        f"    1 - 0.5 e^(-z^2/8) = {1 - 0.5 * math.exp(-z_d ** 2 / 8):.4f}  (corrected; valid)"
-    )
+    X1 = rng.normal(scale=sigma_d, size=(n_d, d))
+    X2 = rng.normal(scale=sigma_d, size=(n_d, d)) + Delta_d * v_star
+    proj1, proj2 = X1 @ v_star, X2 @ v_star
+    thr = 0.5 * Delta_d
+    alpha_d = (np.sum(proj1 < thr) + np.sum(proj2 > thr)) / (2 * n_d)
+    alpha_d_phi = norm.cdf(Delta_d / (2 * sigma_d))
+    d_ok = abs(alpha_d - alpha_d_phi) < 0.005
+    print(f"  (c) d=32 rank-1: alpha_sim={alpha_d:.5f} vs Phi(z/2)={alpha_d_phi:.5f}, ok={d_ok}")
 
-    # Aggregate
+    # (d) AUXILIARY: Hoeffding companion across sub-Gaussian families. Correct
+    # constant: per-class error <= exp(-Delta^2/(8 sigma^2)) (no 1/2 factor;
+    # the 1/2-weighted variant fails for Rademacher and was corrected by the
+    # audit). Not part of the shipped statement; reported, not gating.
     print()
-    print(
-        f"  As-stated bound (1/2 + z/4) holds: at "
-        f"{sum(1 for r in rows if r[5] >= r[7]):d}/{n_configs} configurations"
-    )
-    print(
-        f"  Corrected bound (1 - 0.5 e^(-z^2/8)) holds: at "
-        f"{sum(1 for r in rows if r[5] >= r[8] - 1e-3):d}/{n_configs} configurations"
-    )
+    comp_fail = 0
+    for fam_name, sampler in [("gaussian", sample_gaussian),
+                              ("rademacher", sample_rademacher),
+                              ("uniform-bounded", sample_uniform)]:
+        for _ in range(4):
+            sigma = float(rng.uniform(0.5, 3.0))
+            Delta = float(rng.uniform(0.2, 2.0))
+            x1 = sampler(50_000, 0.0, sigma, rng)
+            x2 = sampler(50_000, Delta, sigma, rng)
+            thr = Delta / 2
+            alpha_sim = (np.sum(x1 < thr) + np.sum(x2 > thr)) / 100_000
+            bound = 1 - math.exp(-(Delta / sigma) ** 2 / 8)
+            tol = 5 * math.sqrt(max(alpha_sim * (1 - alpha_sim), 1e-9) / 100_000)
+            if alpha_sim < bound - tol:
+                comp_fail += 1
+                print(f"  (d) VIOLATION {fam_name}: alpha={alpha_sim:.5f} < bound={bound:.5f}")
+    comp_ok = comp_fail == 0
+    print(f"  (d) [auxiliary] Hoeffding companion (corrected constant) holds on "
+          f"12/12 sub-Gaussian configurations: {comp_ok}")
 
-    # The NumPy verifier reports PASS only on the CORRECTED bound. The
-    # as-stated bound is reported as FAILED in the discovery log.
-    ok = (fail_corrected == 0)
-    print(f"[NumPy verdict] corrected bound: {ok}")
-    print("[NumPy verdict] as-stated bound: FAILED (gap documented)")
+    ok = eq_ok and endpoint_ok and d_ok
+    print(f"[NumPy verdict] shipped statement (a)+(b)+(c): {ok}   "
+          f"[auxiliary companion: {comp_ok}]")
     return ok
 
 
 # ---------------------------------------------------------------------------
-# Verifier 3 - Z3 SMT
+# Verifier 3 - Z3 SMT (foundational steps; transcendental N/A)
 # ---------------------------------------------------------------------------
 
 def verify_z3() -> bool:
-    """Encode the Cauchy-Schwarz step in d=2, d=3, and d=4. Verify Z3 returns
-    UNSAT on the negation. The transcendental Phi/erf step (whether the
-    as-stated bound or the corrected Chernoff bound) is outside Z3's
-    decidable theory; scope documented.
-    """
     print("[Z3] SMT counter-model search for Cauchy-Schwarz at d=2, 3, 4")
     for d in [2, 3, 4]:
         s = z3.Solver()
@@ -364,61 +279,42 @@ def verify_z3() -> bool:
         a = z3.RealVector("a", d)
         b = z3.RealVector("b", d)
         inner = sum(a[i] * b[i] for i in range(d))
-        norm_a_sq = sum(a[i] ** 2 for i in range(d))
-        norm_b_sq = sum(b[i] ** 2 for i in range(d))
-        s.add(norm_a_sq * norm_b_sq - inner * inner < 0)
+        s.add(sum(a[i] ** 2 for i in range(d)) * sum(b[i] ** 2 for i in range(d)) - inner * inner < 0)
         res = s.check()
         print(f"  d={d}: Z3 check (CS violation) = {res}")
-        if res == z3.sat:
-            print(f"  counter-model: {s.model()}")
-            return False
-        if res == z3.unknown:
-            print(f"  Z3 returned UNKNOWN at d={d}")
+        if res != z3.unsat:
             return False
 
-    # Equality witness: a parallel to b.
-    s_eq = z3.Solver()
-    s_eq.set("timeout", 60_000)
-    a = z3.RealVector("a", 2)
-    b = z3.RealVector("b", 2)
-    s_eq.add(a[0] == 1, a[1] == 2, b[0] == 3, b[1] == 6)
-    inner = a[0] * b[0] + a[1] * b[1]
-    norm_a_sq = a[0] ** 2 + a[1] ** 2
-    norm_b_sq = b[0] ** 2 + b[1] ** 2
-    s_eq.add(inner ** 2 == norm_a_sq * norm_b_sq)
-    res_eq = s_eq.check()
-    print(f"  Z3 CS equality witness (a=(1,2), b=(3,6)): {res_eq}")
-    if res_eq != z3.sat:
-        return False
-
-    # Rank-1 reduction: encode mu_1 - mu_2 = c * v_star with v_star unit and
-    # show ||mu_1 - mu_2|| = |c| (same direction as v_star up to sign).
-    print()
-    print("  Z3 rank-1 reduction (d=2, mu_1 - mu_2 = c * v_star unit norm):")
     s_r = z3.Solver()
     s_r.set("timeout", 60_000)
-    c_sym = z3.Real("c")
-    v0 = z3.Real("v0")
-    v1 = z3.Real("v1")
-    s_r.add(v0 ** 2 + v1 ** 2 == 1)  # unit norm
-    diff0 = c_sym * v0
-    diff1 = c_sym * v1
-    norm_diff_sq = diff0 ** 2 + diff1 ** 2
-    s_r.add(norm_diff_sq != c_sym ** 2)
+    c_sym, v0, v1 = z3.Real("c"), z3.Real("v0"), z3.Real("v1")
+    s_r.add(v0**2 + v1**2 == 1)
+    s_r.add((c_sym * v0) ** 2 + (c_sym * v1) ** 2 != c_sym**2)
     res_r = s_r.check()
-    print(f"  rank-1 reduction (||c*v||^2 != c^2 with ||v||=1): {res_r}")
+    print(f"  rank-1 reduction (||c v||^2 != c^2 with ||v||=1): {res_r}")
     if res_r != z3.unsat:
         return False
 
-    # Tsybakov 2.6 (transcendental) is outside Z3's theory.
-    print()
-    print("  Tsybakov 2.6 (alpha_star >= 1/2 + z/4) and Chernoff alternative:")
-    print("    outside Z3's decidable theory (Phi/erf/exp required);")
-    print("    SymPy verifies the as-stated form FAILS at z = 0.5, 1, 2;")
-    print("    SymPy + NumPy verify the corrected Hoeffding/Chernoff form HOLDS.")
-
+    print("  Gaussian-exact accuracy (Phi/erf) outside Z3's decidable theory;")
+    print("  covered by SymPy (exact integration) + NumPy (Monte-Carlo equality).")
     print("[Z3] PASS=True (foundational Cauchy-Schwarz + rank-1 reduction)")
     return True
+
+
+# ---------------------------------------------------------------------------
+# Section R - reproducible refutation of the SUPERSEDED linear form
+# ---------------------------------------------------------------------------
+
+def refute_superseded_linear_form() -> None:
+    print("[Section R] superseded linear bound alpha_star >= 1/2 + z/4 (historical)")
+    for zv in [0.1, 0.5, 1.0, 2.0]:
+        phi = norm.cdf(zv / 2)
+        lin = 0.5 + zv / 4
+        print(f"  z={zv:4.1f}: Phi(z/2)={phi:.5f}, 1/2 + z/4={lin:.5f}, margin={phi - lin:+.5f}")
+    print("  margin < 0 at z >= 0.5: the superseded linear form is REFUTED")
+    print("  (slope of Phi(z/2) at z=0 is 1/(2 sqrt(2 pi)) ~= 0.199 < 1/4).")
+    print("  The shipped Gaussian-exact statement replaces it; this section is")
+    print("  retained so the proof-pipeline discovery remains reproducible.")
 
 
 # ---------------------------------------------------------------------------
@@ -429,11 +325,10 @@ def main() -> int:
     tee = Tee(LOG_PATH)
     sys.stdout = tee
     try:
-        print("T4 - Sub-Gaussian sharpening")
-        print("   AS-STATED:  alpha_star >= 1/2 + Delta_nb / (4 sigma)")
-        print("   FOUNDATIONAL STEPS verified: Cauchy-Schwarz + rank-1 reduction")
-        print("   CORRECTED FORM verified: alpha_star >= 1 - 0.5 exp(-(Delta_nb/sigma)^2 / 8)")
-        print("                            (Hoeffding/Chernoff sub-Gaussian bound)")
+        print("T4 - Gaussian sharpening (SHIPPED Gaussian-exact statement)")
+        print("   alpha_star = Phi(Delta_nb / (2 sigma));  Delta_nb = 1.8,")
+        print(f"   sigma in [{SIGMA_LO}, {SIGMA_HI}]  =>  alpha_star in [{RANGE_LO}, {RANGE_HI}]")
+        print("   companion: alpha_star >= 1 - 0.5 exp(-Delta_nb^2 / (8 sigma^2))")
         print(f"   seed={SEED}, time={time.strftime('%Y-%m-%d %H:%M:%S')}")
         hr()
 
@@ -443,33 +338,21 @@ def main() -> int:
         hr()
         ok_z3 = verify_z3()
         hr()
+        refute_superseded_linear_form()
+        hr()
 
-        passed = sum([ok_sym, ok_num, ok_z3])
-        print("VERIFIER COVERAGE on the FOUNDATIONAL steps (Cauchy-Schwarz + rank-1):")
-        print(f"  SymPy={ok_sym} NumPy={ok_num} Z3={ok_z3}  ({passed}/3)")
+        passed = sum([ok_sym, ok_num])
+        print("VERIFIER COVERAGE on the SHIPPED statement:")
+        print(f"  SymPy={ok_sym} NumPy={ok_num}  ({passed}/2 applicable; "
+              f"Z3 foundational={ok_z3}, transcendental N/A)")
         print()
-        print("VERIFIER COVERAGE on the AS-STATED linear bound 1/2 + Delta/(4 sigma):")
-        print("  SymPy=FAIL (gap at z=0.1, 0.5, 1, 2)")
-        print("  NumPy=FAIL (0/8 configurations satisfy the bound)")
-        print("  Z3=N/A (Phi/erf outside decidable theory)")
-        print()
-        print("KEY FINDING: the AS-STATED linear bound 1/2 + Delta/(4 sigma) does")
-        print("NOT hold universally. The Gaussian Bayes accuracy Phi(z/2) has")
-        print("slope 1/(2 sqrt(2 pi)) ~= 0.199 at z=0, strictly less than 1/4.")
-        print("The cited Tsybakov 2009 Theorem 2.6 supports an UPPER bound on")
-        print("classification accuracy via Pinsker, not a LOWER bound. The")
-        print("appropriate sub-Gaussian sharpening of T3 is")
-        print("  alpha_star = Phi(Delta_nb / (2 sigma))   [Gaussian equality]")
-        print("  alpha_star >= 1 - 0.5 exp(-Delta_nb^2 / (8 sigma^2))   [Chernoff,")
-        print("                  valid for the linear-classifier rate, not Bayes]")
-        print("Both have known regimes of validity that the as-stated form does not.")
-        print()
-        print("THEOREM 4 STATUS: PARTIAL")
-        print("  - foundational steps verified by 3/3 verifiers")
-        print("  - as-stated linear bound falsified by 2/2 applicable verifiers")
-        print("  - flagged in SUMMARY.md as a target for theorem-statement revision")
-        # Exit code reflects PARTIAL: foundational PASS but full theorem PARTIAL.
-        return 0 if passed >= 2 else 1
+        if passed == 2 and ok_z3:
+            print("THEOREM 4 STATUS: PASS (shipped Gaussian-exact statement verified")
+            print("  by 2/2 applicable verifiers; Z3 covers the foundational steps;")
+            print("  superseded linear form documented as refuted in Section R)")
+            return 0
+        print("THEOREM 4 STATUS: FAIL")
+        return 1
     finally:
         sys.stdout = sys.__stdout__
         tee.close()

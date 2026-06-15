@@ -66,39 +66,78 @@ def step1_z3_kl_projection() -> bool:
 
 
 def step2_sympy_factorisation() -> bool:
-    """SymPy: compliance log-odds inherit channel-prior log-odds gap on matched content."""
-    g_func = sp.Function("g")
+    """SymPy: on matched content the argument difference of g is the channel-prior
+    log-odds gap and the content term lambda(c) cancels, so the compliance gap
+    depends only on (ell1 - ell2). The earlier version compared an expression to an
+    identical copy (a tautology); this checks the actual cancellation."""
     ell1, ell2, lam = sp.symbols("ell1 ell2 lambda", real=True)
-    diff = g_func(ell1 + lam) - g_func(ell2 + lam)
-    expected = g_func(ell1 + lam) - g_func(ell2 + lam)
-    return sp.simplify(diff - expected) == 0
+    arg_diff = (ell1 + lam) - (ell2 + lam)
+    cancels = sp.simplify(arg_diff - (ell1 - ell2)) == 0
+    # And on a concrete nonlinear g the gap is a function of (ell1 - ell2, ell2) but
+    # is invariant to a common shift of both arguments by lam (translation in lam):
+    c = sp.Symbol("c", positive=True)
+    g = lambda l: c * sp.tanh(l / c)
+    gap = g(ell1 + lam) - g(ell2 + lam)
+    dgap_dlam = sp.simplify(sp.diff(gap, lam))
+    # Not identically zero for nonlinear g (gap does depend on the operating point),
+    # so the factorisation is non-trivial; we assert the ARGUMENT cancellation holds.
+    return cancels and (dgap_dlam != 0)
 
 
-def step3_numpy_mean_value(n_trials: int = 32, seed: int = 42) -> tuple[bool, float]:
-    """NumPy: mean value theorem bound on 1-Lipschitz monotonic g with kappa = inf g'."""
+def _inf_gprime(gprime, a: float, b: float, n: int = 2001) -> float:
+    lo, hi = (a, b) if a <= b else (b, a)
+    xs = np.linspace(lo, hi, n)
+    return float(np.min(gprime(xs)))
+
+
+def step3_numpy_mean_value(n_trials: int = 48, seed: int = 42) -> tuple[bool, float]:
+    """NumPy: the MVT lower bound |g(b)-g(a)| >= (inf_[a,b] g') * |b-a| for NONLINEAR
+    1-Lipschitz monotone g, where kappa = inf g' is the binding quantity (not the
+    affine slope). Three families are exercised: tanh-compressor, clipped identity,
+    and logistic-of-logit; affine is included only as the equality boundary case."""
     rng = np.random.default_rng(seed)
+    families = ["tanh", "clip", "logistic", "affine"]
     failures = 0
     min_margin = np.inf
-    for _ in range(n_trials):
+    strict_seen = 0  # count configs where the bound is a STRICT inequality
+    for k in range(n_trials):
         rho1 = rng.uniform(0.55, 0.95)
         rho2 = rng.uniform(0.05, 0.45)
         ell1 = np.log(rho1 / (1 - rho1))
         ell2 = np.log(rho2 / (1 - rho2))
-        beta = rng.uniform(0.3, 1.0)
-        alpha = rng.uniform(-1.0, 1.0)
-        kappa = beta
         lam = rng.uniform(-2, 2)
-        # g(l) = beta * l + alpha is 1-Lipschitz iff beta <= 1
-        g1 = beta * (ell1 + lam) + alpha
-        g2 = beta * (ell2 + lam) + alpha
-        compliance_gap = abs(g1 - g2)
+        a, b = ell2 + lam, ell1 + lam
+        fam = families[k % len(families)]
+        if fam == "tanh":
+            c = rng.uniform(0.8, 3.0)
+            g = lambda l, c=c: c * np.tanh(l / c)
+            gp = lambda l, c=c: 1.0 / np.cosh(l / c) ** 2
+        elif fam == "clip":
+            T = rng.uniform(0.5, 3.0)
+            g = lambda l, T=T: np.clip(l, -T, T)
+            gp = lambda l, T=T: ((l > -T) & (l < T)).astype(float)
+        elif fam == "logistic":
+            beta = rng.uniform(0.4, 1.0)
+            g = lambda l, beta=beta: (1.0 / beta) * np.log1p(np.exp(beta * l)) - (1.0 / beta) * np.log(2)
+            gp = lambda l, beta=beta: 1.0 / (1.0 + np.exp(-beta * l))  # in (0,1), <=1
+        else:  # affine equality boundary
+            beta = rng.uniform(0.3, 1.0)
+            g = lambda l, beta=beta: beta * l
+            gp = lambda l, beta=beta: np.full_like(l, beta)
+        kappa = _inf_gprime(gp, a, b)
+        compliance_gap = abs(float(g(np.array([b]))[0]) - float(g(np.array([a]))[0]))
         prior_gap = abs(ell1 - ell2)
-        bound = kappa * prior_gap
-        margin = compliance_gap - bound
+        margin = compliance_gap - kappa * prior_gap
         min_margin = min(min_margin, margin)
+        if margin > 1e-6:
+            strict_seen += 1
         if margin < -1e-9:
             failures += 1
-    return failures == 0, float(min_margin)
+    # Require the bound to hold everywhere AND to be genuinely strict on a
+    # non-trivial share of nonlinear configs (otherwise it would only be the
+    # affine equality case in disguise).
+    ok = (failures == 0) and (strict_seen >= n_trials // 3)
+    return ok, float(min_margin)
 
 
 def main() -> int:

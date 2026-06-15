@@ -1,0 +1,286 @@
+{
+  "generated_by": "theory/proofs/run_pipeline.py",
+  "nodes": {
+    "T1_rate_ratio": {
+      "step0": {
+        "rubric_present": true,
+        "notes_present": true,
+        "rigor_audit_section": true,
+        "banned_phrases": [],
+        "ledger_non_pass": [],
+        "verdict": "PASS"
+      },
+      "steps123": {
+        "ran": true,
+        "exit_code": 0,
+        "engines": {
+          "SymPy": "PASS",
+          "NumPy": "PASS",
+          "Z3": "PASS"
+        },
+        "final_status": "PASS",
+        "stdout_tail": "  Z3 check (signed bound, ell1 >= ell2): unsat\n  Z3 equality witness (gap = 3): sat\n[Z3] PASS=True\n------------------------------------------------------------------------------\nVERIFIER COVERAGE: SymPy=True NumPy=True Z3=True  (3/3)\nTHEOREM 1 STATUS: PASS (>=2 verifiers agree)",
+        "elapsed_s": 1.9
+      },
+      "steps456": {
+        "lean_files": [],
+        "coq_files": [],
+        "lean_toolchain": false,
+        "coq_toolchain": false,
+        "verdict": "NONE"
+      },
+      "gate": {
+        "verdict": "PASS",
+        "engines_pass": [
+          "SymPy",
+          "NumPy",
+          "Z3"
+        ],
+        "engines_fail": [],
+        "reasons": []
+      }
+    },
+    "T2_grounding": {
+      "step0": {
+        "rubric_present": true,
+        "notes_present": true,
+        "rigor_audit_section": true,
+        "banned_phrases": [],
+        "ledger_non_pass": [],
+        "verdict": "PASS"
+      },
+      "steps123": {
+        "ran": true,
+        "exit_code": 0,
+        "engines": {
+          "SymPy": "PASS",
+          "NumPy": "PASS",
+          "Z3": "PASS"
+        },
+        "final_status": "PASS",
+        "stdout_tail": "  Z3 channel-invariance check (posterior shift differs): unsat\n  Z3 equality witness (shift = -log_BF): sat\n[Z3] PASS=True\n------------------------------------------------------------------------------\nVERIFIER COVERAGE: SymPy=True NumPy=True Z3=True  (3/3)\nTHEOREM 2 STATUS: PASS (>=2 verifiers agree)",
+        "elapsed_s": 1.0
+      },
+      "steps456": {
+        "lean_files": [],
+        "coq_files": [],
+        "lean_toolchain": false,
+        "coq_toolchain": false,
+        "verdict": "NONE"
+      },
+      "gate": {
+        "verdict": "PASS",
+        "engines_pass": [
+          "SymPy",
+          "NumPy",
+          "Z3"
+        ],
+        "engines_fail": [],
+        "reasons": []
+      }
+    },
+    "T3_probing": {
+      "step0": {
+        "rubric_present": true,
+        "notes_present": true,
+        "rigor_audit_section": true,
+        "banned_phrases": [],
+        "ledger_non_pass": [],
+        "verdict": "PASS"
+      },
+      "steps123": {
+        "ran": true,
+        "exit_code": 0,
+        "engines": {
+          "SymPy": "PASS",
+          "NumPy": "PASS",
+          "Z3": "PASS"
+        },
+        "final_status": "PASS",
+        "stdout_tail": "    verified by SymPy + NumPy with margin reporting.\n  Z3 KR equality witness (|psi|=M attains 2M*TV): sat\n[Z3] PASS=True\n------------------------------------------------------------------------------\nVERIFIER COVERAGE: SymPy=True NumPy=True Z3=True  (3/3)\nTHEOREM 3 STATUS: PASS (>=2 verifiers agree)",
+        "elapsed_s": 1.0
+      },
+      "steps456": {
+        "lean_files": [],
+        "coq_files": [],
+        "lean_toolchain": false,
+        "coq_toolchain": false,
+        "verdict": "NONE"
+      },
+      "gate": {
+        "verdict": "PASS",
+        "engines_pass": [
+          "SymPy",
+          "NumPy",
+          "Z3"
+        ],
+        "engines_fail": [],
+        "reasons": []
+      }
+    },
+    "T4_subgaussian": {
+      "step0": {
+        "rubric_present": true,
+        "notes_present": true,
+        "rigor_audit_section": true,
+        "banned_phrases": [],
+        "ledger_non_pass": [],
+        "verdict": "PASS"
+      },
+      "steps123": {
+        "ran": true,
+        "exit_code": 0,
+        "engines": {
+          "SymPy": "PASS",
+          "NumPy": "PASS"
+        },
+        "final_status": "PASS",
+        "stdout_tail": "VERIFIER COVERAGE on the SHIPPED statement:\n  SymPy=True NumPy=True  (2/2 applicable; Z3 foundational=True, transcendental N/A)\n\nTHEOREM 4 STATUS: PASS (shipped Gaussian-exact statement verified\n  by 2/2 applicable verifiers; Z3 covers the foundational steps;\n  superseded linear form documented as refuted in Section R)",
+        "elapsed_s": 20.0
+      },
+      "steps456": {
+        "lean_files": [],
+        "coq_files": [],
+        "lean_toolchain": false,
+        "coq_toolchain": false,
+        "verdict": "NONE"
+      },
+      "gate": {
+        "verdict": "PASS",
+        "engines_pass": [
+          "SymPy",
+          "NumPy"
+        ],
+        "engines_fail": [],
+        "reasons": []
+      }
+    },
+    "T5_impossibility": {
+      "step0": {
+        "rubric_present": true,
+        "notes_present": true,
+        "rigor_audit_section": true,
+        "banned_phrases": [],
+        "ledger_non_pass": [],
+        "verdict": "PASS"
+      },
+      "steps123": {
+        "ran": true,
+        "exit_code": 0,
+        "engines": {
+          "SymPy": "PASS",
+          "NumPy": "PASS",
+          "Z3": "PASS"
+        },
+        "final_status": "PASS",
+        "stdout_tail": "[SymPy] Step 2 posterior log-odds factorisation:              PASS=True\n------------------------------------------------------------------------\n[NumPy] Step 3 MVT bound (32 random Lipschitz g):             PASS=True min_margin=-0.000000\n========================================================================\nVERIFIER COVERAGE: SymPy=True NumPy=True Z3=True  (3/3)\nTHEOREM 5 STATUS: PASS (>=2 verifiers agree)",
+        "elapsed_s": 1.0
+      },
+      "steps456": {
+        "lean_files": [],
+        "coq_files": [],
+        "lean_toolchain": false,
+        "coq_toolchain": false,
+        "verdict": "NONE"
+      },
+      "gate": {
+        "verdict": "PASS",
+        "engines_pass": [
+          "SymPy",
+          "NumPy",
+          "Z3"
+        ],
+        "engines_fail": [],
+        "reasons": []
+      }
+    },
+    "T6_priority_inversion": {
+      "step0": {
+        "rubric_present": true,
+        "notes_present": true,
+        "rigor_audit_section": true,
+        "banned_phrases": [],
+        "ledger_non_pass": [],
+        "verdict": "PASS"
+      },
+      "steps123": {
+        "ran": true,
+        "exit_code": 0,
+        "engines": {
+          "SymPy": "PASS",
+          "NumPy": "PASS",
+          "Z3": "PASS"
+        },
+        "final_status": "PASS",
+        "stdout_tail": "[SymPy] Step 2 linear factorisation gives beta * delta_phi:   PASS=True\n[NumPy] Step 3 opposite-signed corpus rates produce neg prod: PASS=True max_prod=-1.6544\n[Z3]   Step 3 same-sign betas unsat under opposite corpus:   PASS=True\n========================================================================\nVERIFIER COVERAGE: SymPy=True NumPy=True Z3=True  (3/3)\nTHEOREM 6 STATUS: PASS (>=2 verifiers agree)",
+        "elapsed_s": 1.0
+      },
+      "steps456": {
+        "lean_files": [],
+        "coq_files": [],
+        "lean_toolchain": false,
+        "coq_toolchain": false,
+        "verdict": "NONE"
+      },
+      "gate": {
+        "verdict": "PASS",
+        "engines_pass": [
+          "SymPy",
+          "NumPy",
+          "Z3"
+        ],
+        "engines_fail": [],
+        "reasons": []
+      }
+    },
+    "T7_capacity_bound": {
+      "step0": {
+        "rubric_present": true,
+        "notes_present": true,
+        "rigor_audit_section": true,
+        "banned_phrases": [],
+        "ledger_non_pass": [],
+        "verdict": "PASS"
+      },
+      "steps123": {
+        "ran": true,
+        "exit_code": 0,
+        "engines": {
+          "SymPy": "PASS",
+          "NumPy": "PASS"
+        },
+        "final_status": "PASS",
+        "stdout_tail": "[NumPy] Step 2 deterministic population L2 bias strictly decreasing in C: PASS=True\n        population L2 bias: ['0.031250', '0.009217', '0.001860', '0.000303', '0.000045', '0.000006', '0.000001', '0.000000']\n[SymPy] Step 3 kappa > 0 when rho non-uniform & g logistic:   PASS=True\n========================================================================\nVERIFIER COVERAGE: SymPy=True NumPy=True  (2/2 \u2014 Z3 N/A: covering numbers and Rademacher slack outside decidable theory)\nTHEOREM 7 STATUS: PASS (>=2 verifiers agree on order-of-magnitude bound and structural claim)",
+        "elapsed_s": 1.1
+      },
+      "steps456": {
+        "lean_files": [],
+        "coq_files": [],
+        "lean_toolchain": false,
+        "coq_toolchain": false,
+        "verdict": "NONE"
+      },
+      "gate": {
+        "verdict": "PASS",
+        "engines_pass": [
+          "SymPy",
+          "NumPy"
+        ],
+        "engines_fail": [],
+        "reasons": []
+      }
+    }
+  },
+  "engines_available": {
+    "sympy": true,
+    "numpy": true,
+    "z3": true,
+    "lean": false,
+    "coq": false
+  },
+  "summary": {
+    "nodes_total": 7,
+    "nodes_pass": 7,
+    "all_pass": true
+  }
+}

@@ -55,7 +55,7 @@ All 7 theorems pass at least 2 independent verifiers (MathArena Pillar 1 satisfi
 2. Bayes-factor calibration of grounding
 3. Probe-direction compliance correlation
 4. Matched-content sourcing for byte-identical factorial pairs
-5. Falsifiable lower bound on probe accuracy ($\alpha^\star \ge 0.545$ conservative, $[0.578, 0.658]$ Gaussian-sharpened)
+5. Falsifiable lower bound on probe accuracy ($\alpha^\star \ge 0.545$ conservative, $[0.579, 0.659]$ Gaussian-sharpened)
 6. F1: Corpus-uniformisation falsification of T5
 7. F2: Corpus-inversion falsification of T5
 8. F3: Corpus-magnitude scaling for $\kappa$ identification

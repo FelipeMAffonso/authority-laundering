@@ -1,7 +1,7 @@
 T2 - Grounding-effect bound, signed
    -log B(F) <= logit gamma(c, h, F) - logit gamma(c, h) <= 0
    magnitude channel-invariant (at posterior level)
-   seed=42, time=2026-05-06 20:21:22
+   seed=42, time=2026-06-11 22:37:40
 ------------------------------------------------------------------------------
 [SymPy] symbolic verification of the grounding-effect bound
   posterior shift on conditioning on F: -log(P_F_R0) + log(P_F_R1)

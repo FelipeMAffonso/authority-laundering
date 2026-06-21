@@ -328,7 +328,7 @@ def main() -> int:
         print("T4 - Gaussian sharpening (SHIPPED Gaussian-exact statement)")
         print("   alpha_star = Phi(Delta_nb / (2 sigma));  Delta_nb = 1.8,")
         print(f"   sigma in [{SIGMA_LO}, {SIGMA_HI}]  =>  alpha_star in [{RANGE_LO}, {RANGE_HI}]")
-        print("   companion: alpha_star >= 1 - 0.5 exp(-Delta_nb^2 / (8 sigma^2))")
+        print("   companion: alpha_star >= 1 - exp(-Delta_nb^2 / (8 sigma^2))")
         print(f"   seed={SEED}, time={time.strftime('%Y-%m-%d %H:%M:%S')}")
         hr()
 

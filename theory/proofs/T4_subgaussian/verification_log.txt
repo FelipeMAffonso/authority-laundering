@@ -1,8 +1,8 @@
 T4 - Gaussian sharpening (SHIPPED Gaussian-exact statement)
    alpha_star = Phi(Delta_nb / (2 sigma));  Delta_nb = 1.8,
    sigma in [2.2, 4.5]  =>  alpha_star in [0.579, 0.659]
-   companion: alpha_star >= 1 - 0.5 exp(-Delta_nb^2 / (8 sigma^2))
-   seed=42, time=2026-06-11 22:37:43
+   companion: alpha_star >= 1 - exp(-Delta_nb^2 / (8 sigma^2))
+   seed=42, time=2026-06-20 19:51:48
 ------------------------------------------------------------------------------
 [SymPy] symbolic verification of the SHIPPED Gaussian-exact statement
   Step A Cauchy-Schwarz residual is a perfect square: True

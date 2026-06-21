@@ -19,11 +19,11 @@ $$
 Then for matched content $c$ and channels $h_1, h_2$ with $\pi(h_1), \pi(h_2) \in (0, 1)$,
 
 $$
-\operatorname{logit} \gamma(c, h_1) \;-\; \operatorname{logit} \gamma(c, h_2)
-\;\le\; \operatorname{logit} \pi(h_1) \;-\; \operatorname{logit} \pi(h_2),
+\bigl|\operatorname{logit} \gamma(c, h_1) - \operatorname{logit} \gamma(c, h_2)\bigr|
+\;\le\; \bigl|\operatorname{logit} \pi(h_1) - \operatorname{logit} \pi(h_2)\bigr|,
 $$
 
-with equality when $g$ is the identity (linear-in-logit calibration with slope $\beta = 1$).
+with equality when $g$ is the identity (linear-in-logit calibration with slope $\beta = 1$). In particular, when $\pi(h_1) \ge \pi(h_2)$ this sharpens to the signed form $\operatorname{logit} \gamma(c, h_1) - \operatorname{logit} \gamma(c, h_2) \le \operatorname{logit} \pi(h_1) - \operatorname{logit} \pi(h_2)$. (The unconditional signed inequality is false without the ordering hypothesis: $g(\ell)=0.5\ell$, $\pi=(0.3,0.7)$ gives LHS $=-0.847 >$ RHS $=-1.695$.)
 
 ## Restated proof, informal then formal
 

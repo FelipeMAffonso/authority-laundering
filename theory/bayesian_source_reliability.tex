@@ -123,7 +123,7 @@ bound below; the sign-of-effect bound (Proposition~\ref{prop:sign}) requires onl
 Assumption~\ref{ass:bayes}. The 1-Lipschitz-in-logit calibration condition that
 follows is consistent with the temperature-scaling family of LLM calibrators
 \cite{lamb2025semantic} and with empirical evidence that LLMs broadly follow
-Bayesian update structure with mis-calibrated priors rather than flawed updates
+Bayesian update structure with mis-calibrated priors , with the update rule itself intact
 \cite{gupta2025coinflips}.
 
 \section{Rate-ratio bound under rational source-weighting}
@@ -350,8 +350,8 @@ assumptions: (i) channel-blind elicitation of $F$, ensuring $F$ is sourced
 independently of channel; (ii) Bayes-factor matching at the conditional level
 $B(F \mid c, h) = B(F)$, not merely surface matching of $F$ across channels; and
 (iii) complete-evidence observation, where the grounding evidence stream entering
-the model is observable to the empirical pipeline rather than partially observed
-through implicit channels (hedging tone, qualifier density). When grounding effects
+the model is observable to the empirical pipeline, where implicit channels would
+leave it only partially observed (hedging tone, qualifier density). When grounding effects
 are reported turn-wise, the bound applies to evidence cardinality $F_{\le t}$ at
 turn $t$, not the full grounding stream. Magnitude violations of the bound can
 arise from (i)--(iii) without falsifying rational compliance; sign violations of
@@ -672,15 +672,15 @@ The empirical magnitudes are consistent with the bound. Plausible reliability
 rates in 2026 frontier-LLM training corpora are $\rho(\text{tool}) \in [0.85, 0.95]$
 for curated tool-output pipelines and retrieval-augmented generation, against
 $\rho(\text{user}) \in [0.40, 0.65]$ for open-domain user input under no factuality
-constraint. Substituting these ranges into~\eqref{eq:nofreelunch} with $\kappa$
-equal to the calibration constants typical of temperature-scaled language models
-\cite{lamb2025semantic} yields a predicted compliance log-odds gap in the range
-$[1.1, 3.0]$. The empirical gap of $3.38$ from
-Remark~\ref{rem:empirical} sits at and slightly above the upper boundary of the
-prediction interval, which is consistent with a Bayesian-rational lower bound plus
-a small over-amplification effect at exactly the magnitude that
-Theorems~\ref{thm:probing}--\ref{thm:probing-gaussian} lower-bound on the
-probe-distinguishability axis.
+constraint. Substituting these ranges into~\eqref{eq:nofreelunch}, the largest channel-prior
+log-odds gap a rational asymmetric-training account can supply is
+$\operatorname{logit}(0.95) - \operatorname{logit}(0.40) = 3.35$ and the smallest is
+$\operatorname{logit}(0.85) - \operatorname{logit}(0.65) = 1.12$, a corridor of
+$[1.1, 3.3]$ at full read-out sensitivity $\kappa = 1$. The empirical gap of $3.38$
+from Remark~\ref{rem:empirical} slightly exceeds even this $\kappa = 1$ upper
+boundary, and exceeds it by more once $\kappa < 1$ shrinks the rational prediction,
+so the observed behaviour is not reproduced by the most generous rational
+asymmetric-training prior the corpus admits.
 
 \subsection{Priority inversion under regime-conditioned channel coefficients}
 \label{sec:priority-inversion}
@@ -726,7 +726,7 @@ matched commands and
 $\gamma_{\text{dec}}(c, \text{tool}) > \gamma_{\text{dec}}(c, \text{user})$ for
 matched declaratives. The priority inversion observed in the parent paper is
 therefore the dual application of Theorem~\ref{thm:impossibility} under
-opposite-signed corpus reliability rates rather than a contradiction in the
+opposite-signed corpus reliability rates , with no contradiction in the
 underlying compliance function.
 \end{theorem}
 
@@ -861,7 +861,7 @@ infinite-capacity Bayesian limit $\kappa \cdot \Delta\ell$ as model capacity $C$
 scales relative to the content-space effective dimensionality $D$. Concretely, a
 fine-tuning ablation across model sizes (Llama 3.1 8B, 70B, 405B) on the same
 channel-asymmetric corpus should produce a compliance log-odds gap that converges
-monotonically toward $\kappa \cdot \Delta\ell$ rather than collapsing to zero. The corollary
+monotonically toward $\kappa \cdot \Delta\ell$  and does not collapse to zero. The corollary
 is empirically falsified if (i) the gap collapses to zero at large $C$ (which
 would contradict the lower bound), or (ii) the gap exceeds $\Delta\ell$ at large
 $C$ (which would contradict Theorem~\ref{thm:rate-ratio}).
@@ -876,7 +876,7 @@ empirical scaling-law calibration improvements reported by
 capacity-scaling prediction, while the empirical authority-laundering rate-ratio
 gap of $3.38$ across nine frontier models that span four orders of magnitude in
 parameter count provides direct evidence that the gap is driven by the structural
-channel-asymmetry of $\rho$ rather than residual capacity slack. The connection to
+channel-asymmetry of $\rho$ , with residual capacity slack excluded. The connection to
 the empirical calibration-versus-confidence dissociation reported by
 \cite{tian2023verbalized} is the channel-conditional analogue of their
 unconditional finding: bounded-capacity models display channel-conditional
@@ -889,7 +889,7 @@ closed-form bound here.
 \section{Empirical predictions}
 \label{sec:predictions}
 
-The framework yields eleven empirical tests runnable on the existing
+The framework yields eleven empirical testsootnote{Supplementary \S S17 of the companion paper condenses these eleven fine-grained tests into eight pre-stated predictions, grouping the three corpus-rebalancing falsifications as S17.7 and the coupling-cost and capacity-scaling tests as S17.8.} runnable on the existing
 \texttt{data/raw/} corpus and on the activations captured by the
 \texttt{mechanism/run\_subject\_local.py} pipeline.
 
@@ -967,7 +967,7 @@ $\alpha^\star \in [\Phi(0.200), \Phi(0.409)] = [0.579, 0.659]$, which is the
 sharper prediction the linear-probe experiment must clear. A positive
 Experiment~1 result with probe accuracy in the $0.90$ range will clear both the
 conservative and the Gaussian-sharpened floors and will provide quantitative
-rather than qualitative confirmation that the channel-of-origin direction is the
+confirmation, beyond the qualitative result, that the channel-of-origin direction is the
 representational substrate of the non-Bayesian compliance gap.
 
 \item \textbf{Corpus-uniformisation falsification of Theorem~\ref{thm:impossibility}.}
@@ -1053,7 +1053,7 @@ competing biases in language-model evidence weighting, who report a
 Bayesian-deviation ratio of approximately $2$ to $3$ on the evidence-direction
 axis (supporting versus opposing advice). Theorem~\ref{thm:rate-ratio} extends that
 empirical deviation result along two axes: it operates on the delivery channel
-rather than evidence direction, and it derives a closed-form bound connecting two
+, leaving the evidence direction unchanged, and it derives a closed-form bound connecting two
 separately observable quantities, turning a fitted deviation into a falsifiable
 inequality. The authority-laundering empirical gap of approximately $20\times$ on
 rate ratio (corresponding to a logit gap of $3.38$) is roughly an order of magnitude
@@ -1100,7 +1100,7 @@ for realistic Llama 3.1 8B late-layer activations.
 The framework's principal limitation is the 1-Lipschitz-in-logit calibration
 assumption, which is required for the analytic bounds; relaxing to general monotonic
 $f$ retains the sign-of-effect statement of Proposition~\ref{prop:sign} but yields
-a sign-only falsification rather than a quantitative one. A second limitation is
+a sign-only falsification , with quantitative falsification deferred. A second limitation is
 that the falsification scope of Remark~\ref{rem:falsification-scope} requires four
 substantive empirical claims to be independently ruled out before an empirical
 bound violation counts as evidence of a non-Bayesian heuristic; the predictions in

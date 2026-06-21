@@ -39,8 +39,12 @@ bound 1/2 + Delta_nb/(4 sigma); that form is no longer shipped.
 
 ### T1 - Rate-ratio bound
 
-**Statement.** Under Assumption 4 (Bayesian compliance), Assumption 5 (strong
+**Statement.** Under Assumption 1 (Bayesian compliance), Assumption 2 (strong
 matched content + channel-invariant compliance), and 1-Lipschitz g,
+
+|logit gamma(c, h_1) - logit gamma(c, h_2)| <= |logit pi(h_1) - logit pi(h_2)|  (absolute form),
+
+and, when pi(h_1) >= pi(h_2), this sharpens to the signed form
 
 logit gamma(c, h_1) - logit gamma(c, h_2) <= logit pi(h_1) - logit pi(h_2).
 
@@ -53,7 +57,7 @@ logit gamma(c, h_1) - logit gamma(c, h_2) <= logit pi(h_1) - logit pi(h_2).
 - Z3: UNSAT on bound negation under Lipschitz + monotonicity. UNSAT on
   signed-bound negation. SAT on equality witness at gap = 3.
 
-**Verdict: PASS.** Theorem 1 holds as stated. No gap.
+**Verdict: PASS.** Theorem 1 holds in the absolute form (NumPy) and in the signed form under the ordering hypothesis pi(h_1) >= pi(h_2) (Z3). The unconditional signed inequality is false without ordering (counterexample g=0.5l, pi=(0.3,0.7): -0.847 > -1.695).
 
 ### T2 - Grounding-effect bound
 

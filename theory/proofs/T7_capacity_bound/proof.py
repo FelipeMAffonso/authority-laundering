@@ -64,15 +64,23 @@ def step2_numpy_kappa_convergence(n_capacities: int = 8, seed: int = 42) -> tupl
 
 
 def step3_sympy_kappa_nonzero_under_nonuniform_rho() -> bool:
-    """SymPy: when rho_1 != rho_2 in (0, 1), the resulting g' is bounded away from 0
-    on the relevant logit interval [logit rho_2, logit rho_1] for any 1-Lipschitz
-    monotonic g that does not collapse to a constant.
+    """SymPy: when rho_1 != rho_2 in (0, 1), the infimum of g' over the relevant
+    compact logit interval [logit rho_2, logit rho_1] is a positive constant for the
+    logistic family g(l) = sigma(beta*l). Note inf g' over ALL of R is 0 (g' -> 0 at
+    +-inf); the load-bearing quantity is the infimum over the bounded prior-support
+    interval, which is strictly positive iff rho is non-uniform. Evaluated at a
+    non-uniform witness (rho = 0.85, 0.45; beta = 1): g'(l) = beta*sigma*(1-sigma) is
+    bell-shaped, so its infimum on a finite interval is attained at an endpoint.
     """
-    rho_1, rho_2 = sp.symbols("rho_1 rho_2", positive=True)
-    # If g is logistic with slope beta in (0, 1], inf g' = beta on R, which is positive
-    beta = sp.Symbol("beta", positive=True)
-    g_inf = beta  # inf g' for logistic g = sigma(beta * l + alpha) is beta when applied to l
-    return sp.simplify(g_inf - beta) == 0 and bool(beta > 0)
+    beta = sp.Rational(1, 1)
+    l = sp.Symbol("l", real=True)
+    rho_1, rho_2 = sp.Rational(85, 100), sp.Rational(45, 100)  # non-uniform witness
+    g = 1 / (1 + sp.exp(-beta * l))
+    gp = sp.diff(g, l)  # = beta * sigma * (1 - sigma) > 0 on R
+    lo = sp.log(rho_2 / (1 - rho_2))
+    hi = sp.log(rho_1 / (1 - rho_1))
+    inf_gp = float(sp.Min(gp.subs(l, lo), gp.subs(l, hi)))  # inf on the compact interval
+    return inf_gp > 0 and rho_1 != rho_2
 
 
 def main() -> int:

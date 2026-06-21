@@ -94,7 +94,7 @@
 % Define pipe separator manually (Nature uses "Figure 1 | Caption text")
 \DeclareCaptionLabelSeparator{naturepipe}{\enspace\textbar\enspace}
 \captionsetup{
-  font={footnotesize},
+  font={small},
   labelformat=empty,
   justification=justified,
   singlelinecheck=false,
@@ -107,9 +107,10 @@
 \usepackage{array}
 \usepackage{calc}    % Required for Pandoc \real{} column width calculations
 
-% Shrink font size for all longtables to help wide tables fit
+% Shrink font size and tighten column spacing for all longtables so the wide
+% per-model compliance matrices (Model + 12 scenarios + Total) fit the text block.
 \usepackage{etoolbox}
-\AtBeginEnvironment{longtable}{\footnotesize}
+\AtBeginEnvironment{longtable}{\footnotesize\setlength{\tabcolsep}{4pt}}
 \AtBeginEnvironment{figure}{\setlength{\parindent}{0pt}}
 
 % ── Lists ─────────────────────────────────────────────────────
@@ -154,6 +155,14 @@
 % fences compile under xelatex.
 \usepackage{framed}
 \usepackage{fancyvrb}
+% fvextra adds line-breaking to verbatim. Pandoc emits plain `verbatim` for
+% fenced code blocks when syntax highlighting is off; the stock verbatim does
+% not wrap, so long judge-prompt and harness lines overflow the right margin.
+% Redefine verbatim as a breaking fvextra Verbatim so every code block wraps
+% inside the text block.
+\usepackage{fvextra}
+\RecustomVerbatimEnvironment{verbatim}{Verbatim}{%
+  breaklines=true, breakanywhere=true, breaksymbolleft={}, fontsize=\footnotesize}
 \definecolor{shadecolor}{RGB}{245,245,245}
 \newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
 % Syntax-highlighting token commands emitted by Pandoc. We redefine them

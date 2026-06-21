@@ -10,7 +10,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$HERE"
 
 CHROME="/c/Program Files/Google/Chrome/Application/chrome.exe"
-PY="C:/Users/natal/AppData/Local/Programs/Python/Python311/python.exe"
+PY="C:/Users/felip/AppData/Local/Programs/Python/Python313/python.exe"
 
 if [[ ! -f "$CHROME" ]]; then
   echo "ERROR: Chrome not found at $CHROME" >&2
@@ -33,7 +33,7 @@ render_variant () {
   here_win="$(cygpath -m "$HERE")"
   "$PY" -X utf8 - <<PY
 import sys
-sys.path.insert(0, 'C:/Users/natal/AppData/Local/Programs/Python/Python311/Lib/site-packages')
+sys.path.insert(0, 'C:/Users/felip/AppData/Local/Programs/Python/Python313/Lib/site-packages')
 import pymupdf
 import numpy as np
 from PIL import Image

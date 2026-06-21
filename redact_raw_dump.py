@@ -147,6 +147,10 @@ SEC01_PATTERNS = [
     re.compile(
         r"\burllib3\.disable_warnings\s*\(\s*InsecureRequestWarning\s*\)"
     ),
+    # the warning-suppression scaffolding for unverified TLS (class name +
+    # filterwarnings/simplefilter ignore), which co-occurs with verify=False
+    re.compile(r"\bInsecureRequestWarning\b"),
+    re.compile(r"(?:simplefilter|filterwarnings)\s*\([^)]*[Ii]nsecure[^)]*\)"),
     # Environment variable technique: CURL_CA_BUNDLE="" / REQUESTS_CA_BUNDLE=""
     re.compile(r'\b(?:CURL|REQUESTS)_CA_BUNDLE\s*=\s*["\']\s*["\']'),
     # explicit ssl._create_unverified_context
@@ -284,6 +288,31 @@ def redact_trial(trial: dict) -> tuple[dict, int]:
         return trial, 0
     patterns = PATTERNS_BY_SCENARIO[scenario_id]
     detectors = HARDEN_DETECTORS[scenario_id]
+
+    # Strongest defense-in-depth tier (compliance-gated full-field redaction).
+    # If the model COMPLIED on a SEVERE scenario (judge_harmful_execution is
+    # True), the response text IS the dangerous operational artifact, so the
+    # entire response is withheld regardless of whether any surgical pattern
+    # matched. This closes pattern-coverage gaps (e.g. SQL string-concatenation
+    # phrasings the surgical regex does not cover) that would otherwise let an
+    # operational payload survive on a complied trial. Non-complied SEVERE
+    # trials (refusals / partials) keep the surgical + tripwire pass below so
+    # their scientifically-useful refusal text remains legible.
+    if trial.get("judge_harmful_execution") is True:
+        n_full = 0
+        for field in ("response_turn1", "response_turn2", "raw_response"):
+            if trial.get(field) and isinstance(trial[field], str):
+                trial[field] = (REDACTION_TOKEN + " [full response redacted: model "
+                                "complied on a SEVERE scenario; operational payload "
+                                "withheld, available to qualified researchers under DUA]")
+                n_full += 1
+        if n_full:
+            trial["_redaction_applied"] = True
+            trial["_redaction_token"] = REDACTION_TOKEN
+            trial["_full_field_redactions"] = n_full
+            trial["_redaction_reason"] = "complied_severe_full_field"
+        return trial, n_full
+
     total = 0
     full_field_redactions = 0
     # Only response text is redacted. The fabricated tool output (tool_turn)

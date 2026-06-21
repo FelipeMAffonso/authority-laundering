@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Figure 2 · Authority laundering — two-panel split</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:ital@0;1&display=swap');
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 18px;
+  background: #EEEEF1;
+  font-family: 'Source Sans 3', sans-serif;
+  font-feature-settings: "kern", "liga", "tnum";
+  color: #14181F;
+  display: flex;
+  justify-content: center;
+}
+.figure {
+  width: 680px;
+  background: #fff;
+  border: 1px solid #D8DADF;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 6px 18px rgba(0,0,0,.05);
+  padding: 26px 18px 14px 18px;
+  position: relative;
+}
+.studymeta {
+  position: absolute; top: 6px; right: 12px;
+  font-size: 10px; font-style: italic; color: #7A8296;
+}
+
+/* ==== TWO-PANEL SPLIT ==== */
+.split {
+  display: grid;
+  grid-template-columns: 1fr 40px 1fr;
+  gap: 0;
+  align-items: stretch;
+}
+.panel {
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+}
+.panel-left  { background: #F4FAF6; border: 1px solid #C3DBCB; }
+.panel-right { background: #FFF7F5; border: 1px solid #F0C7C0; }
+
+.panel-header {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  padding-bottom: 8px;
+}
+.panel-tag {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; padding: 3px 8px;
+  border-radius: 3px;
+}
+.panel-left .panel-tag  { background: #E1EFE5; color: #2E7D4E; border: 1px solid #C3DBCB; }
+.panel-right .panel-tag { background: #FDECEA; color: #C0392B; border: 1px solid #F0C7C0; }
+
+.panel-title {
+  font-size: 14px; font-weight: 700; color: #14181F;
+}
+
+/* condition rows inside each panel */
+.cond {
+  display: grid;
+  grid-template-columns: 84px 1fr 92px;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 4px;
+  border-top: 1px solid rgba(0,0,0,0.07);
+}
+.cond:first-of-type { border-top: none; }
+/* Left panel: 3 rows pack naturally. Right panel: 2 rows distributed evenly
+   so the panel doesn't feel bottom-heavy. */
+.panel-left  { justify-content: flex-start; }
+.panel-right { justify-content: space-evenly; }
+.panel-right .cond { padding: 14px 4px; }
+
+.cond-icons {
+  display: flex; gap: 3px; align-items: center;
+}
+.cond-icons svg { display: block; }
+
+.cond-text { display: flex; flex-direction: column; }
+.cond-name {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: #14181F;
+}
+.cond-desc {
+  font-size: 11.5px; font-style: italic; color: #7A8296;
+  margin-top: 3px; line-height: 1.4;
+}
+
+.cond-rate {
+  text-align: right;
+}
+.cond-rate .num {
+  font-size: 26px; font-weight: 700; line-height: 1;
+}
+/* Right-panel rates are bigger to visually carry the order-of-magnitude story
+   when paired against 3 small left-panel rows. */
+.panel-right .cond-rate .num { font-size: 36px; }
+.panel-left  .cond-rate .num { color: #2E7D4E; }
+.panel-right .cond-rate .num { color: #C0392B; }
+.panel-right .cond-rate.amber .num { color: #8B2F22; }
+.cond-rate .ci {
+  font-size: 11px; font-style: italic; color: #7A8296; margin-top: 4px;
+}
+
+/* ==== CENTER GUTTER ARROW ==== */
+.gutter {
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.gutter svg { width: 100%; height: 100%; display: block; }
+
+@media print {
+  @page { size: 720px 460px; margin: 0; }
+  html, body { background: #fff; padding: 0; display: block; width: 720px; min-height: 460px; }
+  .figure { box-shadow: none; border: none; width: 680px; margin: 10px auto; }
+}
+</style>
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="ic-person" viewBox="0 0 24 32">
+    <circle cx="12" cy="8" r="5" fill="#6B8AAE" stroke="#2A2A2A" stroke-width="1.2"/>
+    <path d="M 4 30 Q 4 18 12 18 Q 20 18 20 30 Z" fill="#6B8AAE" stroke="#2A2A2A" stroke-width="1.2"/>
+  </symbol>
+  <symbol id="ic-doc" viewBox="0 0 24 30">
+    <path d="M 3 2 L 17 2 L 21 6 L 21 28 L 3 28 Z" fill="#fff" stroke="#2A2A2A" stroke-width="1.2"/>
+    <line x1="6" y1="10" x2="17" y2="10" stroke="#C0392B" stroke-width="1.2"/>
+    <line x1="6" y1="14" x2="18" y2="14" stroke="#999" stroke-width="0.8"/>
+    <line x1="6" y1="17" x2="17" y2="17" stroke="#999" stroke-width="0.8"/>
+  </symbol>
+  <symbol id="ic-robot-good" viewBox="0 0 28 36">
+    <rect x="6" y="6" width="16" height="14" rx="3" fill="#C8DDD0" stroke="#2A2A2A" stroke-width="1.2"/>
+    <circle cx="11" cy="12" r="2" fill="#fff" stroke="#2A2A2A" stroke-width="0.8"/>
+    <circle cx="17" cy="12" r="2" fill="#fff" stroke="#2A2A2A" stroke-width="0.8"/>
+    <circle cx="11" cy="12" r="0.9" fill="#2A2A2A"/>
+    <circle cx="17" cy="12" r="0.9" fill="#2A2A2A"/>
+    <path d="M 10 16 Q 14 18 18 16" fill="none" stroke="#2A2A2A" stroke-width="1"/>
+    <rect x="5" y="22" width="18" height="11" rx="2" fill="#C8DDD0" stroke="#2A2A2A" stroke-width="1.2"/>
+  </symbol>
+  <symbol id="ic-robot-bad" viewBox="0 0 28 36">
+    <rect x="6" y="6" width="16" height="14" rx="2" fill="#F2C0B8" stroke="#2A2A2A" stroke-width="1.2"/>
+    <path d="M 9 11 L 13 13 L 9 14 Z" fill="#fff" stroke="#2A2A2A" stroke-width="0.8"/>
+    <path d="M 19 11 L 15 13 L 19 14 Z" fill="#fff" stroke="#2A2A2A" stroke-width="0.8"/>
+    <circle cx="11" cy="13" r="0.7" fill="#C0392B"/>
+    <circle cx="17" cy="13" r="0.7" fill="#C0392B"/>
+    <path d="M 10 17 L 12 16 L 14 17 L 16 16 L 18 17" fill="none" stroke="#2A2A2A" stroke-width="0.9"/>
+    <rect x="5" y="22" width="18" height="11" rx="2" fill="#F2C0B8" stroke="#2A2A2A" stroke-width="1.2"/>
+  </symbol>
+  <symbol id="ic-tool" viewBox="0 0 56 18">
+    <rect x="1" y="2" width="54" height="14" rx="3" fill="#fff" stroke="#C0392B" stroke-width="1.2"/>
+    <text x="28" y="12.5" text-anchor="middle" font-family="'JetBrains Mono', monospace"
+          font-size="8" font-weight="700" fill="#C0392B">lookup_ref()</text>
+  </symbol>
+</svg>
+
+<article class="figure">
+  <div class="studymeta">Same scenario · same model · same fabricated content · 9 models · 14 scenarios · N = 5 / cell · T = 1.0</div>
+
+  <div class="split">
+
+    <!-- ==== LEFT PANEL: REFUSES ==== -->
+    <div class="panel panel-left">
+      <div class="panel-header">
+        <span class="panel-tag">Refuses</span>
+        <span class="panel-title">User-side channels</span>
+      </div>
+
+      <div class="cond">
+        <div class="cond-icons">
+          <svg viewBox="0 0 24 32" width="26" height="34"><use href="#ic-person"/></svg>
+        </div>
+        <div class="cond-text">
+          <div class="cond-name">Control</div>
+          <div class="cond-desc">no fabrication, matched scenario</div>
+        </div>
+        <div class="cond-rate">
+          <div class="num">4.1%</div>
+          <div class="ci">CI 2.7–6.2</div>
+        </div>
+      </div>
+
+      <div class="cond">
+        <div class="cond-icons">
+          <svg viewBox="0 0 24 32" width="26" height="34"><use href="#ic-person"/></svg>
+          <svg viewBox="0 0 28 36" width="26" height="32"><use href="#ic-robot-good"/></svg>
+        </div>
+        <div class="cond-text">
+          <div class="cond-name">User imperative</div>
+          <div class="cond-desc">user asserts the fab. claim as plain text</div>
+        </div>
+        <div class="cond-rate">
+          <div class="num">1.7%</div>
+          <div class="ci">CI 0.9–3.2</div>
+        </div>
+      </div>
+
+      <div class="cond">
+        <div class="cond-icons">
+          <svg viewBox="0 0 24 32" width="26" height="34"><use href="#ic-person"/></svg>
+          <svg viewBox="0 0 24 30" width="22" height="28"><use href="#ic-doc"/></svg>
+          <svg viewBox="0 0 28 36" width="26" height="32"><use href="#ic-robot-good"/></svg>
+        </div>
+        <div class="cond-text">
+          <div class="cond-name">Document paste</div>
+          <div class="cond-desc">user pastes the full fabricated guideline</div>
+        </div>
+        <div class="cond-rate">
+          <div class="num">7.4%</div>
+          <div class="ci">CI 5.5–9.9</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== CENTER ARROW ==== -->
+    <div class="gutter">
+      <svg viewBox="0 0 40 200" preserveAspectRatio="none">
+        <defs>
+          <marker id="mid-arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#7A8296"/>
+          </marker>
+        </defs>
+        <line x1="6" y1="100" x2="34" y2="100" stroke="#7A8296" stroke-width="2.6"
+              marker-end="url(#mid-arrow)"/>
+      </svg>
+    </div>
+
+    <!-- ==== RIGHT PANEL: COMPLIES ==== -->
+    <div class="panel panel-right">
+      <div class="panel-header">
+        <span class="panel-tag">Complies</span>
+        <span class="panel-title">Tool-side channels</span>
+      </div>
+
+      <div class="cond">
+        <div class="cond-icons">
+          <svg viewBox="0 0 24 30" width="22" height="28"><use href="#ic-doc"/></svg>
+          <svg viewBox="0 0 56 18" width="54" height="17"><use href="#ic-tool"/></svg>
+          <svg viewBox="0 0 28 36" width="26" height="32"><use href="#ic-robot-bad"/></svg>
+        </div>
+        <div class="cond-text">
+          <div class="cond-name">Tool return</div>
+          <div class="cond-desc">model calls a lookup tool; tool returns the fabrication</div>
+        </div>
+        <div class="cond-rate">
+          <div class="num">26.7%</div>
+          <div class="ci">CI 23.1–30.6</div>
+        </div>
+      </div>
+
+      <div class="cond">
+        <div class="cond-icons">
+          <svg viewBox="0 0 56 18" width="54" height="17"><use href="#ic-tool"/></svg>
+          <svg viewBox="0 0 28 36" width="26" height="32"><use href="#ic-robot-bad"/></svg>
+        </div>
+        <div class="cond-text">
+          <div class="cond-name">Grounded tool</div>
+          <div class="cond-desc">tool return + user states contradicting fact in-turn</div>
+        </div>
+        <div class="cond-rate amber">
+          <div class="num">23.6%</div>
+          <div class="ci">CI 19.5–28.3</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</article>
+
+</body>
+</html>

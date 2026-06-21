@@ -15,8 +15,8 @@
 # --- Paths (override on a different machine by editing these two lines) ---
 # Pandoc path: uses /c/Program Files/Pandoc/pandoc.exe on this machine.
 # Alternative user-local install path: /c/Users/natal/AppData/Local/Pandoc/pandoc
-PANDOC="/c/Program Files/Pandoc/pandoc.exe"
-XELATEX="/c/Users/natal/AppData/Local/Programs/MiKTeX/miktex/bin/x64/xelatex.exe"
+PANDOC="/c/Users/felip/AppData/Local/Pandoc/pandoc.exe"
+XELATEX="/c/Users/felip/AppData/Local/Programs/MiKTeX/miktex/bin/x64/xelatex.exe"
 
 PAPER_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$PAPER_DIR")"

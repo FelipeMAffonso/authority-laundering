@@ -2,12 +2,17 @@
 T1 — Rate-ratio bound under 1-Lipschitz logit-compliance.
 
 Theorem 1 (paper Theorem~\\ref{thm:rate-ratio}): under the Bayesian-compliance
-assumption (Assumption 4) and the strong-matching assumption (Assumption 5), if
+assumption (Assumption 1) and the strong-matching assumption (Assumption 2), if
 the compliance function in posterior-log-odds coordinates,
 g(ell) := logit(f(sigmoid(ell))), is 1-Lipschitz on R, then for matched content
-c and channel pair (h1, h2) with pi(h1), pi(h2) in (0, 1),
+c and channel pair (h1, h2) with pi(h1), pi(h2) in (0, 1) the compliance log-odds
+gap is bounded IN ABSOLUTE VALUE by the channel-prior log-odds gap,
 
+    |logit(gamma(c, h1)) - logit(gamma(c, h2))| <= |logit(pi(h1)) - logit(pi(h2))|,
+
+and when pi(h1) >= pi(h2) this sharpens to the signed form
     logit(gamma(c, h1)) - logit(gamma(c, h2)) <= logit(pi(h1)) - logit(pi(h2)).
+(NumPy verifies the absolute bound; Z3 verifies the signed form under ell1 >= ell2.)
 
 This script verifies the theorem via three independent verifiers:
     - SymPy symbolic: closed-form factorisation of the posterior log-odds and

@@ -78,7 +78,7 @@ A trial JSON has: `trial_id`, `model_key`, `model_id`, `provider`, `scenario_id`
 
 ## Aggregate counts (cell x model x condition x direction)
 
-The closed-weight panel (9 models) is balanced at 135 trials per (model x non-grounded condition) cell and 115 trials per (model x TOOL_DIRECT_GROUNDED) cell, all under `direction = dharmful`. The open-weight panel (4 models) is balanced at 135 trials per cell across all five conditions. The cell size of 135 reflects 27 scenarios x 5 replicates. The 115 figure on the closed-weight GROUNDED cell reflects scenarios where grounding was non-applicable. Per-model totals are 655 closed / 675 open. Closed-weight contribution: 5,895 trials. Open-weight contribution: 2,700 trials. Pilot gemma row: 20 trials. Total: 8,615.
+The closed-weight panel (9 models) is balanced at 135 trials per (model x non-grounded condition) cell and 115 trials per (model x TOOL_DIRECT_GROUNDED) cell, all under `direction = dharmful`. The open-weight panel (4 models) is balanced at 135 trials per cell across all five conditions. The cell size of 135 reflects 27 scenarios x 5 replicates. The 115 figure on the closed-weight GROUNDED cell reflects scenarios where grounding was non-applicable. Per-model totals are 655 closed / 675 open. Closed-weight contribution: 5,895 trials (of these, 5,869 carry a non-null judge label and form the analyzed closed-weight panel reported in the paper; the 26-file difference is null-label records, excluded from every analysis). Open-weight contribution: 2,700 trials. Pilot gemma row: 20 trials. Total: 8,615.
 
 ## Project-root cleanup (top 5 recommendations)
 

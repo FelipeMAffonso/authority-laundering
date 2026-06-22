@@ -98,6 +98,7 @@
   labelformat=empty,
   justification=justified,
   singlelinecheck=false,
+  indention=0pt,
   skip=6pt
 }
 
@@ -110,7 +111,7 @@
 % Shrink font size and tighten column spacing for all longtables so the wide
 % per-model compliance matrices (Model + 12 scenarios + Total) fit the text block.
 \usepackage{etoolbox}
-\AtBeginEnvironment{longtable}{\footnotesize\setlength{\tabcolsep}{4pt}}
+\AtBeginEnvironment{longtable}{\footnotesize\setlength{\tabcolsep}{4pt}\setlength{\parindent}{0pt}}
 \AtBeginEnvironment{figure}{\setlength{\parindent}{0pt}}
 
 % ── Lists ─────────────────────────────────────────────────────

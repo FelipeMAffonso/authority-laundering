@@ -111,7 +111,12 @@
 % Shrink font size and tighten column spacing for all longtables so the wide
 % per-model compliance matrices (Model + 12 scenarios + Total) fit the text block.
 \usepackage{etoolbox}
-\AtBeginEnvironment{longtable}{\footnotesize\setlength{\tabcolsep}{4pt}\setlength{\parindent}{0pt}}
+% Make underscores breakable inside table cells only: long scenario IDs such as
+% TAX_01_401k_home_modernisation_hardship are single unbreakable tokens that
+% overflow their column and collide with the next one. \allowbreak after each
+% underscore lets them wrap (no hyphen inserted). Scoped to the longtable group,
+% so underscores in body prose / code are unaffected.
+\AtBeginEnvironment{longtable}{\footnotesize\setlength{\tabcolsep}{4pt}\setlength{\parindent}{0pt}\renewcommand{\_}{\textunderscore\allowbreak}}
 \AtBeginEnvironment{figure}{\setlength{\parindent}{0pt}}
 
 % ── Lists ─────────────────────────────────────────────────────
